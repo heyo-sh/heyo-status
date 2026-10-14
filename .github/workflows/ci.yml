@@ -92,8 +92,11 @@ jobs:
       - name: Boot the bundled Cloudflare Workers (not just the framework dev proxies)
         run: |
           port=4390
+          test -x "$GITHUB_WORKSPACE/node_modules/.bin/wrangler"
           for project in next-cloudflare astro-cloudflare react-router-cloudflare; do
-            (cd "examples/$project" && exec ./node_modules/.bin/wrangler dev --local --port "$port" > "$RUNNER_TEMP/$project-worker.log" 2>&1) &
+            echo "Booting $project production Worker on $port"
+            # Bun can hoist the binary to the workspace root on a fresh install.
+            (cd "examples/$project" && exec "$GITHUB_WORKSPACE/node_modules/.bin/wrangler" dev --local --port "$port" > "$RUNNER_TEMP/$project-worker.log" 2>&1) &
             server=$!
             ready=0
             for attempt in $(seq 1 60); do
