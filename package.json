@@ -41,7 +41,8 @@
     "lint-staged": "17.5.1",
     "prettier": "3.9.8",
     "prettier-plugin-astro": "^1.0.1",
-    "typescript": "7.0.2"
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
   },
   "lint-staged": {
     "*.{astro,cjs,css,cts,html,js,json,jsonc,jsx,md,mdx,mjs,mts,ts,tsx,yaml,yml}": "prettier --write"
