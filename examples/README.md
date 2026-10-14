@@ -47,9 +47,11 @@ collides and no run reads another's rows:
   need isolated data. Migrations run through the project's own
   `bun run db:migrate`.
 - **Cloudflare examples** apply the bundled migrations to the local D1 state
-  with `wrangler d1 migrations apply heyo-status --local`. The framework dev
-  servers reach that state through their Cloudflare dev proxies, so no
-  `wrangler dev` build is needed to click through a page.
+  with `wrangler d1 migrations apply heyo-status --local`. Next and React
+  Router reach that state through their framework dev proxies. Astro/Cloudflare
+  builds first and boots its actual Worker with `wrangler dev`; as in the
+  generated starter, restart `dev` after changing application code (no hot
+  reload). This avoids an upstream Astro/Cloudflare dev-runner crash on Linux.
 
 The harness injects `HEYO_STATUS_API_TOKEN` and `CRON_SECRET`, so the smoke run
 exercises the write half of the API — running checks, opening and resolving an
@@ -57,8 +59,8 @@ incident, then reading it back out of the snapshot, the incident list and the
 feed — through each adapter. `up` runs one check before printing the URLs so the
 page is never empty. Dev-server output lands in `.heyo-playground/<name>.log`.
 CI also builds all six projects, bundles the Cloudflare targets and boots their
-actual Workers in `wrangler dev`; the framework dev proxies alone cannot catch
-Worker-only startup errors.
+actual Workers in `wrangler dev`; the Next and React Router framework dev
+proxies alone cannot catch Worker-only startup errors.
 
 Cloudflare examples declare all three scheduler expressions and point
 `migrations_dir` at the package migrations. Run

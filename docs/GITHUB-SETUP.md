@@ -20,11 +20,11 @@ when the team grows.
 
 The deployment job exercises all six example projects and boots each of the
 three production Workers, including SSR pages; an API-only health check is not
-sufficient to catch React runtime problems. Astro 7 needs the root Vite 8
-instance for its Cloudflare dev adapter; the React Router examples use Vite 7
-until Vite 8's emitted Rolldown runtime can boot inside a production Worker.
-The root Vite dependency is deliberately exempt from Knip's unused-dependency
-check because it controls workspace dependency resolution.
+sufficient to catch React runtime problems. React Router uses Vite 7; Vite 8
+currently emits a Rolldown runtime that cannot start inside a Cloudflare Worker.
+The Astro/Cloudflare example builds the app before booting its local Worker,
+instead of relying on the Cloudflare/Vite dev adapter (which fails to start on
+some Linux runners when both Vite majors share a workspace).
 
 ## npm release environment
 

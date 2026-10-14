@@ -602,15 +602,19 @@ async function startDevServer(
     logFile = openSync(output, "w");
   }
 
+  // Astro/Cloudflare's Vite dev runner crashes with a split Vite 7/8 tree on
+  // Linux. Its own dev script builds first and boots the real local Worker.
+  const workerAstro = example.name === "astro-cloudflare";
   const child = spawn(
-    binaryPath(directory, example.bin),
+    workerAstro ? "bun" : binaryPath(directory, example.bin),
     [
+      ...(workerAstro ? ["run"] : []),
       "dev",
       "--port",
       String(example.port),
-      // Astro 7 auto-backgrounds dev servers inside agent environments;
-      // foreground ownership is required for reliable cleanup and smoke checks.
-      ...(example.bin === "astro" ? ["--ignore-lock"] : []),
+      // Astro 7 auto-backgrounds framework dev servers inside agent
+      // environments; the Worker CLI does not need this Astro-only flag.
+      ...(example.bin === "astro" && !workerAstro ? ["--ignore-lock"] : []),
     ],
     {
       cwd: directory,
