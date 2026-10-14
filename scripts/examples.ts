@@ -67,7 +67,6 @@ const cronSecret = "local-playground-cron";
 
 /** Container used only when no Postgres is already listening locally. */
 const dockerContainer = "heyo-status-playground-postgres";
-const dockerPort = 55432;
 const dockerPassword = "heyo-status";
 
 // ---------------------------------------------------------------------------
@@ -383,7 +382,10 @@ async function resolvePostgresServer(example: Example): Promise<string> {
   }
 
   await startDockerPostgres();
-  const container = `postgres://postgres:${dockerPassword}@localhost:${dockerPort}`;
+  const port = await dockerHostPort();
+  if (!port)
+    throw new Error(`No localhost port published by ${dockerContainer}.`);
+  const container = `postgres://postgres:${dockerPassword}@localhost:${port}`;
   // The container accepts TCP before it finishes initialising the cluster.
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
@@ -445,8 +447,10 @@ async function startDockerPostgres(): Promise<void> {
     dockerContainer,
     "--env",
     `POSTGRES_PASSWORD=${dockerPassword}`,
+    // Docker picks an unused host port atomically. Never expose this test
+    // database on an external network interface or reserve a fixed port.
     "--publish",
-    `${dockerPort}:5432`,
+    "127.0.0.1::5432",
     "postgres:17-alpine",
   ]);
   if (started.code !== 0) {
@@ -455,13 +459,26 @@ async function startDockerPostgres(): Promise<void> {
   startedDockerPostgres = true;
 }
 
+/** Docker may publish the harness database on any available localhost port. */
+async function dockerHostPort(): Promise<number | undefined> {
+  const result = await execute("docker", ["port", dockerContainer, "5432/tcp"]);
+  if (result.code !== 0) return undefined;
+  const match = result.output.match(
+    /(?:127\.0\.0\.1|0\.0\.0\.0|\[::\]):([1-9]\d{1,4})\b/,
+  );
+  return match ? Number(match[1]) : undefined;
+}
+
 /** Finds a reachable Postgres without starting anything. */
 async function findRunningPostgresServer(
   example: Example,
 ): Promise<string | undefined> {
+  const port = await dockerHostPort();
   const candidates = [
     `postgres://${process.env.USER ?? "postgres"}@localhost:5432`,
-    `postgres://postgres:${dockerPassword}@localhost:${dockerPort}`,
+    ...(port
+      ? [`postgres://postgres:${dockerPassword}@localhost:${port}`]
+      : []),
   ];
   for (const candidate of candidates) {
     if (await canConnect(example, `${candidate}/postgres`)) return candidate;

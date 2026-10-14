@@ -36,9 +36,10 @@ Each example gets a fixed port (4310–4315) and its own database, so nothing
 collides and no run reads another's rows:
 
 - **Vercel examples** use `DATABASE_URL` when it is set, otherwise a Postgres
-  already listening on `localhost:5432`, otherwise a Docker container the
-  harness starts and removes again when the command ends (`--keep-db` leaves it
-  up). A server that was already running is never started or stopped by the
+  already listening on `localhost:5432`, otherwise a Docker container on an
+  automatically assigned localhost-only port. The harness removes that
+  container when the command ends (`--keep-db` leaves it up). A server that
+  was already running is never started or stopped by the
   harness: it only creates `heyo_status_<example>` databases in it, which
   `reset` drops again. A container already present before the harness starts
   is never removed, even if it has the harness name. With an explicit
