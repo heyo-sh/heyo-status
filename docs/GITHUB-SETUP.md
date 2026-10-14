@@ -3,8 +3,10 @@
 The workflow definitions live in `.github/workflows/`. CI runs on pull
 requests; `release.yml` runs only on pushes to `main` and calls the same CI
 before it can open a version PR or publish packages. `codeql.yml` scans both
-pull requests and `main` weekly. Dependabot checks the Bun workspace and
-GitHub Actions weekly.
+pull requests and `main` weekly. The release workflow explicitly dispatches
+CI and CodeQL on Changesets version PRs: GitHub does not emit `pull_request`
+workflow runs for pull requests created by `GITHUB_TOKEN`. Dependabot checks
+the Bun workspace and GitHub Actions weekly.
 
 ## Branch protection
 

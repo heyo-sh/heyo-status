@@ -10,7 +10,8 @@
  * Component styling itself lives in the components.
  */
 
-@import "tailwindcss";
+/* Vite 8's SSR PostCSS resolver cannot resolve Tailwind's bare style export. */
+@import "tailwindcss/index.css";
 @import "@heyo-sh/heyo-ui/theme.css";
 
 /*

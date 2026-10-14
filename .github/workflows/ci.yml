@@ -3,6 +3,8 @@ name: CI
 on:
   pull_request:
   workflow_call:
+  # GITHUB_TOKEN-created version PRs do not trigger pull_request workflows.
+  workflow_dispatch:
 
 permissions:
   contents: read

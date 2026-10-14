@@ -45,6 +45,7 @@ jobs:
     if: needs.select-mode.outputs.mode == 'version'
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       contents: write
       pull-requests: write
     steps:
@@ -62,9 +63,23 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Create or update release pull request
+        id: version
         uses: changesets/action/version@v2.1.2
         with:
           script: bun run version-packages
+
+      # GitHub does not trigger pull_request workflows for events created by
+      # GITHUB_TOKEN. Dispatch checks against the version PR's head so branch
+      # protection can verify the versioned packages before they are merged.
+      - name: Check the version pull request
+        if: steps.version.outputs.pr-number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.version.outputs.pr-number }}
+        run: |
+          head=$(gh pr view "$PR_NUMBER" --json headRefName --jq .headRefName)
+          gh workflow run ci.yml --ref "$head"
+          gh workflow run codeql.yml --ref "$head"
 
   publish:
     name: Publish packages to npm
