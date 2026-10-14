@@ -10,8 +10,9 @@ GitHub Actions weekly.
 
 Protect `main`: require pull requests, disallow force pushes and deletion, and
 require the `Quality`, `Deployment examples` and all three `Node runtime`
-checks before merging. Keep status checks up to date with `main`. Set an
-approval requirement only when another maintainer can review pull requests:
+checks plus `Analyze JavaScript and TypeScript` (CodeQL) before merging. Keep
+status checks up to date with `main`. Set an approval requirement only when
+another maintainer can review pull requests:
 a solo maintainer cannot approve their own PR. Revisit the protection rules
 when the team grows.
 
