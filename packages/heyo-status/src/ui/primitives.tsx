@@ -854,16 +854,20 @@ export function machineTimestamp(value: Date | string): string | undefined {
 export function formatTimestamp(value: Date | string): string {
   const timestamp = value instanceof Date ? value : new Date(value);
   if (!Number.isFinite(timestamp.getTime())) return "Unknown";
-  return (
-    new Intl.DateTimeFormat("en-US", {
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      month: "short",
-      timeZone: "UTC",
-      year: "numeric",
-    }).format(timestamp) + " UTC"
-  );
+  // CLDR joins date and time with either "," or "at" depending on the ICU
+  // version. Compose the two parts ourselves to keep SSR and hydration stable.
+  const date = new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+    year: "numeric",
+  }).format(timestamp);
+  const time = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "UTC",
+  }).format(timestamp);
+  return `${date} at ${time} UTC`;
 }
 
 /** Day and month only: incident history reads as a date, not a timestamp. */
