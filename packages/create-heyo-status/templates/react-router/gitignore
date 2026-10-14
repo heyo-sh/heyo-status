@@ -1,0 +1,10 @@
+node_modules/
+build/
+.react-router/
+.env
+.env.*
+!.env.example
+.dev.vars*
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

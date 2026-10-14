@@ -1,0 +1,132 @@
+/*
+ * Heyo Status — the stylesheet a status page imports.
+ *
+ *   import "@heyo-sh/heyo-status/theme/status.css";
+ *
+ * The components are built from heyo-ui, so this file only has four jobs:
+ * pull in Tailwind and the heyo-ui tokens, tell Tailwind where the compiled
+ * components live, declare the handful of tokens that are specific to a
+ * status page, and carry the per-theme tokens for every bundled theme.
+ * Component styling itself lives in the components.
+ */
+
+@import "tailwindcss";
+@import "@heyo-sh/heyo-ui/theme.css";
+
+/*
+ * Tailwind skips `node_modules` when it auto-detects content, so without this
+ * every class in the compiled status components would be tree-shaken out of
+ * the consumer's build. The path is relative to this file inside `dist`, which
+ * is the only place it is ever imported from.
+ */
+@source "../**/*.js";
+
+@theme {
+  /*
+   * Status colours are the heyo-ui status tokens rather than a second palette:
+   * one of them changing — for contrast, for a brand — must not leave a status
+   * page showing two different greens for the same idea.
+   */
+  --color-status-up: var(--color-heyo-success);
+  --color-status-degraded: var(--color-heyo-warning);
+  --color-status-down: var(--color-heyo-danger);
+  --color-status-maintenance: var(--color-heyo-info);
+}
+
+:root {
+  /* The fallback for a page rendered without a theme attribute. */
+  --status-page-max-width: 72rem;
+}
+
+/*
+ * Per-theme tokens, keyed off the `data-theme` attribute the page shell
+ * already publishes.
+ *
+ * These used to be `:root` declarations in five separate stylesheets, which
+ * split one decision across two places that had no way to disagree out loud:
+ * `theme` in `heyo-status.config.ts` chose the layout, and whichever
+ * stylesheet happened to be imported chose the width and the radii. Changing
+ * `theme` alone moved the layout and left the width behind, because nothing
+ * about the page had changed the stylesheet — a silent half-applied theme.
+ *
+ * Scoping them to the attribute makes `theme` the only switch there is. Every
+ * bundled theme's tokens ship in this one file, so importing "the wrong"
+ * stylesheet is no longer possible rather than merely discouraged.
+ */
+[data-theme="slate"] {
+  /* The same column as fern and onyx: a card with a sparkline reads at this
+   * width, and three themes sharing one measure is worth more than a default
+   * that is wider only because it can be. */
+  --status-page-max-width: 64rem;
+}
+
+[data-theme="fern"] {
+  /*
+   * The history bar is the page. Much below this, ninety columns put a single
+   * bad day in a hairline nobody notices, which is the one thing the theme is
+   * for.
+   */
+  --status-page-max-width: 64rem;
+  /* Softer than the default scale; the page is all rows and one big dot. */
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+[data-theme="onyx"] {
+  --status-page-max-width: 64rem;
+  /*
+   * Flattening the radius scale that every heyo-ui surface already reads from
+   * squares off the whole page without a single component override.
+   */
+  --radius-xs: 0.0625rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.1875rem;
+  --radius-lg: 0.25rem;
+  --radius-xl: 0.25rem;
+  --radius-2xl: 0.375rem;
+}
+
+[data-theme="dune"] {
+  /*
+   * Rows are name, description and one uptime figure on a single line. Past
+   * this the figure drifts so far from the name it belongs to that the eye
+   * stops pairing them, and the density the theme exists for is lost to
+   * whitespace.
+   */
+  --status-page-max-width: 60rem;
+  /* Tighter chrome, so fifty components still fit on one screen. */
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.625rem;
+}
+
+[data-theme="reed"] {
+  /*
+   * Deliberately the narrowest of the bundled themes. The whole page is one
+   * column of service names, and a name followed by half a screen of empty
+   * space before its uptime figure reads worse than a page that just ends
+   * sooner.
+   */
+  --status-page-max-width: 40rem;
+}
+
+/* The bundled Heyo mark is dark; invert only that asset in dark mode.
+ * Custom logos keep their own colours in both modes. */
+[data-slot="status-logo"][src="/heyo.svg"] {
+  filter: invert(light-dark(0, 1));
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-heyo-canvas);
+    color: var(--color-heyo-default);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}

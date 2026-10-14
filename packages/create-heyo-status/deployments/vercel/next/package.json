@@ -1,0 +1,41 @@
+{
+  "scripts": {
+    "deploy": "vercel --prod"
+  },
+  "overrides": {
+    "@vercel/node": {
+      "path-to-regexp": "6.3.0"
+    },
+    "@vercel/remix-builder": {
+      "path-to-regexp": "6.3.0"
+    },
+    "@vercel/backends": {
+      "path-to-regexp": "8.4.2"
+    },
+    "@vercel/express": {
+      "path-to-regexp": "8.4.2"
+    },
+    "@vercel/hono": {
+      "path-to-regexp": "8.4.2"
+    }
+  },
+  "pnpm": {
+    "overrides": {
+      "@vercel/node>path-to-regexp": "6.3.0",
+      "@vercel/remix-builder>path-to-regexp": "6.3.0",
+      "@vercel/backends>path-to-regexp": "8.4.2",
+      "@vercel/express>path-to-regexp": "8.4.2",
+      "@vercel/hono>path-to-regexp": "8.4.2"
+    }
+  },
+  "resolutions": {
+    "@vercel/node/path-to-regexp": "6.3.0",
+    "@vercel/remix-builder/path-to-regexp": "6.3.0",
+    "@vercel/backends/path-to-regexp": "8.4.2",
+    "@vercel/express/path-to-regexp": "8.4.2",
+    "@vercel/hono/path-to-regexp": "8.4.2"
+  },
+  "devDependencies": {
+    "vercel": "63.1.2"
+  }
+}

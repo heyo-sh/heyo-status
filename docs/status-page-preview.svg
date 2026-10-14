@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-label="Heyo Status page preview">
+  <rect width="1200" height="720" fill="#f8fafc"/>
+  <rect x="80" y="58" width="1040" height="604" rx="20" fill="#fff" stroke="#e2e8f0"/>
+  <text x="130" y="126" fill="#0f172a" font-family="Arial, sans-serif" font-size="30" font-weight="700">Acme Status</text>
+  <text x="130" y="162" fill="#64748b" font-family="Arial, sans-serif" font-size="16">Real-time service status</text>
+  <rect x="130" y="205" width="940" height="105" rx="14" fill="#ecfdf5"/>
+  <circle cx="177" cy="257" r="12" fill="#10b981"/>
+  <text x="208" y="252" fill="#065f46" font-family="Arial, sans-serif" font-size="23" font-weight="700">All Systems Operational</text>
+  <text x="208" y="280" fill="#047857" font-family="Arial, sans-serif" font-size="15">All monitored services are operating normally.</text>
+  <text x="130" y="370" fill="#0f172a" font-family="Arial, sans-serif" font-size="22" font-weight="700">Monitors</text>
+  <rect x="130" y="400" width="940" height="92" rx="12" fill="#fff" stroke="#e2e8f0"/>
+  <circle cx="166" cy="438" r="8" fill="#10b981"/>
+  <text x="190" y="444" fill="#0f172a" font-family="Arial, sans-serif" font-size="18" font-weight="700">Website</text>
+  <text x="190" y="470" fill="#64748b" font-family="Arial, sans-serif" font-size="14">99.99% uptime · 84 ms</text>
+  <text x="950" y="445" fill="#047857" font-family="Arial, sans-serif" font-size="16" font-weight="700">Operational</text>
+  <rect x="130" y="518" width="940" height="92" rx="12" fill="#fff" stroke="#e2e8f0"/>
+  <circle cx="166" cy="556" r="8" fill="#10b981"/>
+  <text x="190" y="562" fill="#0f172a" font-family="Arial, sans-serif" font-size="18" font-weight="700">Public API</text>
+  <text x="190" y="588" fill="#64748b" font-family="Arial, sans-serif" font-size="14">100% uptime · 61 ms</text>
+  <text x="950" y="563" fill="#047857" font-family="Arial, sans-serif" font-size="16" font-weight="700">Operational</text>
+</svg>

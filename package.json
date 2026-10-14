@@ -1,0 +1,49 @@
+{
+  "name": "heyo-status-monorepo",
+  "private": true,
+  "packageManager": "bun@1.4.3",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "overrides": {
+    "http-cache-semantics": "4.3.0",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2",
+    "@vercel/routing-utils": {
+      "path-to-regexp": "6.3.0"
+    }
+  },
+  "scripts": {
+    "build": "bun run --filter @heyo-sh/heyo-status build && bun run --filter @heyo-sh/create-heyo-status build",
+    "check": "bun run --filter @heyo-sh/heyo-status check",
+    "test": "bun test",
+    "example": "bun scripts/examples.ts",
+    "scaffold:smoke": "bun scripts/scaffold-smoke.ts",
+    "typecheck": "bun run --filter @heyo-sh/heyo-status build && bun run --filter @heyo-sh/create-heyo-status typecheck && bun run --filter heyo-status-contract-example typecheck",
+    "format": "prettier --write .",
+    "lint": "prettier --check .",
+    "format-staged": "lint-staged",
+    "prepare": "husky",
+    "knip": "knip --include files,dependencies,unlisted,unresolved",
+    "quality:pre-push": "bun run lint && bun run knip && bun run typecheck && bun test",
+    "quality": "bun run lint && bun run knip && bun run typecheck && bun test && bun run build",
+    "changeset": "changeset",
+    "version-packages": "changeset version && bun scripts/sync-version.ts",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "3.0.3",
+    "@types/node": "26.6.2",
+    "bun-types": "1.4.2",
+    "husky": "9.1.7",
+    "knip": "6.37.0",
+    "lint-staged": "17.5.1",
+    "prettier": "3.9.8",
+    "prettier-plugin-astro": "^1.0.1",
+    "typescript": "7.0.2"
+  },
+  "lint-staged": {
+    "*.{astro,cjs,css,cts,html,js,json,jsonc,jsx,md,mdx,mjs,mts,ts,tsx,yaml,yml}": "prettier --write"
+  }
+}

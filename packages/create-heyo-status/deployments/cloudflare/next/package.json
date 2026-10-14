@@ -1,0 +1,16 @@
+{
+  "scripts": {
+    "dev": "bun run db:migrate && bun run start",
+    "start": "opennextjs-cloudflare build && wrangler dev",
+    "check": null,
+    "db:seed": null,
+    "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}} --local",
+    "deploy": "opennextjs-cloudflare build && wrangler deploy"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.125.0"
+  }
+}

@@ -1,0 +1,77 @@
+name: Bug report
+description: Report a reproducible problem in Heyo Status.
+title: "bug: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please remove tokens, private URLs, database credentials and personal data from your reproduction.
+  - type: input
+    id: version
+    attributes:
+      label: Heyo Status version
+      placeholder: "@heyo-sh/heyo-status 0.1.0, Bun 1.4.3 or Node 24"
+    validations:
+      required: true
+  - type: dropdown
+    id: framework
+    attributes:
+      label: Framework
+      options:
+        - React Router
+        - Next.js
+        - Astro
+        - Package API only
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment and database
+      options:
+        - Cloudflare Workers + D1
+        - Vercel + PostgreSQL
+        - Self-hosted + SQLite
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link a repository or provide the smallest configuration and steps that reproduce the issue. Do not include secrets.
+      placeholder: |
+        1. Create a project with …
+        2. Configure …
+        3. Run …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Redact tokens, monitor URLs and personal data before posting.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and did not find a duplicate.
+          required: true
+        - label: I can reproduce this with supported, current dependency versions.
+          required: true

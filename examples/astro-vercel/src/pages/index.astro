@@ -1,0 +1,35 @@
+---
+import { StatusPage } from "@heyo-sh/heyo-status/ui";
+import { statusThemeBootstrapScript } from "@heyo-sh/heyo-status/theme/script";
+import "@heyo-sh/heyo-status/theme/status.css";
+import { statusPage } from "../../heyo-status.config";
+
+const snapshot = await statusPage.api.getSnapshot();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{statusPage.title}</title>
+    <script
+      is:inline
+      set:html={statusThemeBootstrapScript(undefined, statusPage.mode)}
+    />
+  </head>
+  <body>
+    <StatusPage
+      client:load
+      branding={statusPage.branding}
+      colors={statusPage.colors}
+      metrics={statusPage.metrics}
+      mode={statusPage.mode}
+      basePath={statusPage.basePath}
+      snapshot={snapshot}
+      subscribersEnabled={statusPage.subscribers.enabled}
+      subscriberMethods={statusPage.subscribers.methods}
+      theme={statusPage.theme}
+      title={statusPage.title}
+    />
+  </body>
+</html>

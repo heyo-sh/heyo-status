@@ -1,0 +1,9 @@
+/*
+ * Slate — the default status page: grouped service cards, daily uptime bars
+ * and a latency sparkline in each.
+ *
+ * Legacy alias for theme/status.css. Every bundled theme's tokens ship in the
+ * shared stylesheet, scoped to the page shell's `data-theme` attribute.
+ * `theme` in heyo-status.config.ts selects the look.
+ */
+@import "../status.css";

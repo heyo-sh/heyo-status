@@ -1,0 +1,181 @@
+{
+  "name": "@heyo-sh/heyo-status",
+  "version": "0.1.0",
+  "description": "Framework-agnostic, TypeScript-first status pages.",
+  "keywords": [
+    "status-page",
+    "uptime",
+    "monitoring",
+    "incidents",
+    "cloudflare-workers",
+    "vercel"
+  ],
+  "homepage": "https://heyo.sh",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heyo-sh/heyo-status.git",
+    "directory": "packages/heyo-status"
+  },
+  "bugs": {
+    "url": "https://github.com/heyo-sh/heyo-status/issues"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "./dist/theme/*.css"
+  ],
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "bin": {
+    "heyo-status": "./dist/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@heyo-sh/heyo-ui": "^0.2.0",
+    "drizzle-orm": "^0.45.2",
+    "hono": "^4.11.3",
+    "tailwindcss": "^4.1.14",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "20.14.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "default": "./dist/config.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "default": "./dist/types.js"
+    },
+    "./checks": {
+      "types": "./dist/checks.d.ts",
+      "default": "./dist/checks.js"
+    },
+    "./db": {
+      "types": "./dist/db.d.ts",
+      "default": "./dist/db.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "default": "./dist/api.js"
+    },
+    "./db/d1": {
+      "types": "./dist/db/d1.d.ts",
+      "default": "./dist/db/d1.js"
+    },
+    "./db/lazy": {
+      "types": "./dist/db/lazy.d.ts",
+      "default": "./dist/db/lazy.js"
+    },
+    "./db/postgres": {
+      "types": "./dist/db/postgres.d.ts",
+      "default": "./dist/db/postgres.js"
+    },
+    "./snapshot": {
+      "types": "./dist/snapshot.d.ts",
+      "default": "./dist/snapshot.js"
+    },
+    "./badge": {
+      "types": "./dist/badge.d.ts",
+      "default": "./dist/badge.js"
+    },
+    "./metrics": {
+      "types": "./dist/metrics.d.ts",
+      "default": "./dist/metrics.js"
+    },
+    "./telemetry": {
+      "types": "./dist/telemetry.d.ts",
+      "default": "./dist/telemetry.js"
+    },
+    "./feeds": {
+      "types": "./dist/feeds.d.ts",
+      "default": "./dist/feeds.js"
+    },
+    "./subscribers": {
+      "types": "./dist/subscribers.d.ts",
+      "default": "./dist/subscribers.js"
+    },
+    "./notifications": {
+      "types": "./dist/notifications.d.ts",
+      "default": "./dist/notifications.js"
+    },
+    "./ui": {
+      "types": "./dist/ui.d.ts",
+      "default": "./dist/ui.js"
+    },
+    "./ui/subscribe-dialog": {
+      "types": "./dist/ui/subscribe-dialog.d.ts",
+      "default": "./dist/ui/subscribe-dialog.js"
+    },
+    "./next": {
+      "types": "./dist/adapters/next.d.ts",
+      "default": "./dist/adapters/next.js"
+    },
+    "./astro": {
+      "types": "./dist/adapters/astro.d.ts",
+      "default": "./dist/adapters/astro.js"
+    },
+    "./react-router": {
+      "types": "./dist/adapters/react-router.d.ts",
+      "default": "./dist/adapters/react-router.js"
+    },
+    "./deployments/cloudflare": {
+      "types": "./dist/deployments/cloudflare.d.ts",
+      "default": "./dist/deployments/cloudflare.js"
+    },
+    "./deployments/vercel": {
+      "types": "./dist/deployments/vercel.d.ts",
+      "default": "./dist/deployments/vercel.js"
+    },
+    "./deployments/node": {
+      "types": "./dist/deployments/node.d.ts",
+      "default": "./dist/deployments/node.js"
+    },
+    "./theme/provider": {
+      "types": "./dist/theme/provider.d.ts",
+      "default": "./dist/theme/provider.js"
+    },
+    "./theme/script": {
+      "types": "./dist/theme/script.d.ts",
+      "default": "./dist/theme/script.js"
+    },
+    "./theme/slate.css": "./dist/theme/slate.css",
+    "./theme/fern.css": "./dist/theme/fern.css",
+    "./theme/onyx.css": "./dist/theme/onyx.css",
+    "./theme/dune.css": "./dist/theme/dune.css",
+    "./theme/reed.css": "./dist/theme/reed.css",
+    "./theme/status.css": "./dist/theme/status.css"
+  },
+  "scripts": {
+    "dev": "bun run build --watch",
+    "build": "rm -rf dist && bun run build:core && bun run build:worker && bun run build:ui && bun run build:types && bun run copy:assets",
+    "build:core": "bun build src/index.ts src/config.ts src/types.ts src/checks.ts src/db.ts src/db/d1.ts src/db/lazy.ts src/db/postgres.ts src/api.ts src/snapshot.ts src/badge.ts src/metrics.ts src/telemetry.ts src/feeds.ts src/subscribers.ts src/notifications.ts src/cli.ts src/adapters/next.ts src/adapters/astro.ts src/adapters/react-router.ts src/deployments/cloudflare.ts src/deployments/vercel.ts src/deployments/node.ts --outdir dist --root src --target node --production --external zod --external drizzle-orm --external hono",
+    "build:worker": "bun build src/config.ts src/api.ts src/db/d1.ts src/db/lazy.ts src/adapters/next.ts src/adapters/astro.ts src/adapters/react-router.ts src/deployments/cloudflare.ts --outdir dist --root src --target browser --production --external zod --external drizzle-orm --external hono",
+    "build:ui": "bun build src/ui.ts src/ui/subscribe-dialog.tsx src/theme/provider.tsx --outdir dist --target browser --production --splitting --banner='\"use client\";' --external react --external react-dom --external react/jsx-runtime --external @heyo-sh/heyo-ui && bun build src/theme/script.ts --outfile dist/theme/script.js --target browser --production",
+    "build:types": "tsc -p tsconfig.build.json",
+    "copy:assets": "bun scripts/copy-theme-assets.ts",
+    "theme:preview": "bun scripts/theme-preview.ts",
+    "check": "bun run src/cli.ts check run",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "bun test"
+  }
+}

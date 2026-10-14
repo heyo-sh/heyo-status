@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "dev": "bun run db:migrate && bun run start",
+    "start": "astro build && wrangler dev",
+    "check": null,
+    "db:seed": null,
+    "db:migrate": "wrangler d1 migrations apply {{PROJECT_NAME}} --local",
+    "deploy": "astro build && wrangler deploy"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.4",
+    "@astrojs/node": null
+  },
+  "devDependencies": {
+    "wrangler": "^4.125.0"
+  }
+}

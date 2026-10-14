@@ -1,0 +1,43 @@
+---
+import { StatusPage } from "@heyo-sh/heyo-status/ui";
+import { statusThemeBootstrapScript } from "@heyo-sh/heyo-status/theme/script";
+import "@heyo-sh/heyo-status/theme/status.css";
+import "../styles/status.css";
+import { statusPage } from "../../heyo-status.config";
+
+export const prerender = false;
+const snapshot = await statusPage.api.getSnapshot();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{statusPage.title}</title>
+    <meta name="description" content={statusPage.description} />
+    {/* Applies the configured or remembered colour mode before first paint. */}
+    <script
+      is:inline
+      set:html={statusThemeBootstrapScript(undefined, statusPage.mode)}
+    />
+  </head>
+  <body>
+    {/*
+      client:load hydrates the island. Without it the colour-mode toggle and
+      the subscribe dialog render as inert markup.
+    */}
+    <StatusPage
+      client:load
+      branding={statusPage.branding}
+      colors={statusPage.colors}
+      metrics={statusPage.metrics}
+      mode={statusPage.mode}
+      basePath={statusPage.basePath}
+      snapshot={snapshot}
+      subscribersEnabled={statusPage.subscribers.enabled}
+      subscriberMethods={statusPage.subscribers.methods}
+      theme={statusPage.theme}
+      title={statusPage.title}
+    />
+  </body>
+</html>

@@ -1,0 +1,12 @@
+/*
+ * Project-level overrides. The theme stylesheet imported alongside this file
+ * already brings Tailwind, the heyo-ui tokens and the page defaults, so this
+ * only has to say what is specific to this project.
+ *
+ * Every part of the page exposes a `data-slot`, which is the stable hook to
+ * target: `[data-slot="status-page"]`, `status-header`, `status-overall`,
+ * `status-monitor`, `status-monitor-group`, `status-footer`.
+ */
+[data-slot="status-page"] {
+  min-height: 100vh;
+}
