@@ -68,6 +68,31 @@ describe("deployment examples", () => {
     }
   });
 
+  test("React Router packages share one major across examples and scaffolds", async () => {
+    const manifests = [
+      "react-router-cloudflare/package.json",
+      "react-router-vercel/package.json",
+      "../packages/create-heyo-status/templates/react-router/package.json",
+      "../packages/create-heyo-status/deployments/cloudflare/react-router/package.json",
+    ];
+    const majors = new Set<number>();
+
+    for (const manifest of manifests) {
+      const { dependencies } = JSON.parse(
+        await readFile(join(root, manifest), "utf8"),
+      ) as { dependencies: Record<string, string> };
+      for (const [name, version] of Object.entries(dependencies)) {
+        if (name === "react-router" || name.startsWith("@react-router/")) {
+          const major = Number(/^\^(\d+)/.exec(version)?.[1]);
+          expect(Number.isInteger(major)).toBe(true);
+          majors.add(major);
+        }
+      }
+    }
+
+    expect(majors.size).toBe(1);
+  });
+
   test.each(examples)(
     "$name forwards every configured presentation option",
     async ({ name, page }) => {

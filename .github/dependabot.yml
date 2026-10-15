@@ -6,6 +6,12 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # The Cloudflare adapter must match the React Router major used by the
+    # example and templates. RR 8 also drops Node 20 and its Vite dev proxy.
+    # Upgrade the whole stack together rather than bumping this adapter alone.
+    ignore:
+      - dependency-name: "@react-router/cloudflare"
+        update-types: ["version-update:semver-major"]
     groups:
       development-dependencies:
         dependency-type: development
