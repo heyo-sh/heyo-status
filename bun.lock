@@ -97,7 +97,7 @@
       "name": "@heyo-sh/example-react-router-cloudflare",
       "dependencies": {
         "@heyo-sh/heyo-status": "workspace:*",
-        "@react-router/cloudflare": "^7.0.0",
+        "@react-router/cloudflare": "^8.4.0",
         "@react-router/dev": "^7.0.0",
         "@react-router/serve": "^7.0.0",
         "@tailwindcss/postcss": "^4.1.14",
@@ -763,7 +763,7 @@
 
     "@prettier/parse-srcset": ["@prettier/parse-srcset@3.1.0", "", {}, "sha512-FIRv2rZotO9NP/r66taYqD1zICpPiBbrECqjKV/xqNotqDxF7fLzzUeK+1RSRx9Tenk0DajR/GcRmTJ2qtHaKQ=="],
 
-    "@react-router/cloudflare": ["@react-router/cloudflare@7.18.4", "", { "peerDependencies": { "@cloudflare/workers-types": "^4.0.0", "react-router": "^7.18.4", "typescript": "^5.1.0 || ^6.0.0" }, "optionalPeers": ["typescript"] }, "sha512-pTiR+Ww77eQz3yutv8Dt1mR9xnsU0gWXjfZPf7N0F75szA8bwcbSir0G9W98p/hTsRGF90H6xiyiE3cbrBnoMw=="],
+    "@react-router/cloudflare": ["@react-router/cloudflare@8.4.0", "", { "peerDependencies": { "@cloudflare/workers-types": "^4.0.0", "react-router": "^8.4.0", "typescript": "^5.1.0 || ^6.0.0 || ^7.0.0" }, "optionalPeers": ["typescript"] }, "sha512-kUl14c00rdyKAuEo5e+1NliW0ATk1ikOPvHN2tR24OYC7zRpg7YjpyIg5lvYktUASXT6RkZESd8IekRoHThFgA=="],
 
     "@react-router/dev": ["@react-router/dev@7.18.4", "", { "dependencies": { "@babel/core": "^7.27.7", "@babel/generator": "^7.27.5", "@babel/parser": "^7.27.7", "@babel/plugin-syntax-jsx": "^7.27.1", "@babel/preset-typescript": "^7.27.1", "@babel/traverse": "^7.27.7", "@babel/types": "^7.27.7", "@react-router/node": "7.18.4", "@remix-run/node-fetch-server": "^0.13.0", "arg": "^5.0.1", "babel-dead-code-elimination": "^1.0.6", "chokidar": "^4.0.0", "dedent": "^1.5.3", "es-module-lexer": "^1.3.1", "exit-hook": "2.2.1", "isbot": "^5.1.11", "jsesc": "3.0.2", "lodash": "^4.17.21", "p-map": "^7.0.3", "pathe": "^1.1.2", "picocolors": "^1.1.1", "pkg-types": "^2.3.0", "prettier": "^3.6.2", "react-refresh": "^0.14.0", "semver": "^7.3.7", "tinyglobby": "^0.2.14", "valibot": "^1.2.0", "vite-node": "^3.2.2" }, "peerDependencies": { "@react-router/serve": "^7.18.4", "@vitejs/plugin-rsc": "~0.5.21", "react-router": "^7.18.4", "react-server-dom-webpack": "^19.2.3", "typescript": "^5.1.0 || ^6.0.0", "vite": "^5.1.0 || ^6.0.0 || ^7.0.0 || ^8.0.0", "wrangler": "^3.28.2 || ^4.0.0" }, "optionalPeers": ["@react-router/serve", "@vitejs/plugin-rsc", "react-server-dom-webpack", "typescript", "wrangler"], "bin": { "react-router": "bin.js" } }, "sha512-4sxQa18Znjz1zw1MGK7f97zXjK4NVcNgESvWPPEYScRFAHJWq6Q3/oejDPfYjKWLygsX1yF9jboxbGLw+V9f+g=="],
 
