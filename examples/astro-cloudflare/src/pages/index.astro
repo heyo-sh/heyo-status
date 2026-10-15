@@ -1,0 +1,44 @@
+---
+import { env } from "cloudflare:workers";
+import { StatusPage } from "@heyo-sh/heyo-status/ui";
+import { statusThemeBootstrapScript } from "@heyo-sh/heyo-status/theme/script";
+import "@heyo-sh/heyo-status/theme/status.css";
+import { statusPage, type Env } from "../../heyo-status.config";
+
+export const prerender = false;
+const page = statusPage(env as Env);
+const snapshot = await page.api.getSnapshot();
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{page.title}</title>
+    <meta name="description" content={page.description} />
+    {/* Applies the configured or remembered colour mode before first paint. */}
+    <script
+      is:inline
+      set:html={statusThemeBootstrapScript(undefined, page.mode)}
+    />
+  </head>
+  <body>
+    {/*
+      client:load hydrates the island. Without it the colour-mode toggle and
+      the subscribe dialog render as inert markup.
+    */}
+    <StatusPage
+      client:load
+      branding={page.branding}
+      colors={page.colors}
+      metrics={page.metrics}
+      mode={page.mode}
+      basePath={page.basePath}
+      snapshot={snapshot}
+      subscribersEnabled={page.subscribers.enabled}
+      subscriberMethods={page.subscribers.methods}
+      theme={page.theme}
+      title={page.title}
+    />
+  </body>
+</html>

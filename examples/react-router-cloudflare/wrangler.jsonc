@@ -1,0 +1,19 @@
+{
+  "name": "heyo-status-react-router-cloudflare",
+  "main": "src/status-worker.ts",
+  "compatibility_date": "2026-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "build/client",
+    "binding": "ASSETS",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "heyo-status",
+      "database_id": "replace-me",
+      "migrations_dir": "../../packages/heyo-status/src/db/migrations",
+    },
+  ],
+  "triggers": { "crons": ["*/5 * * * *", "10 0 * * *", "0 3 * * *"] },
+}

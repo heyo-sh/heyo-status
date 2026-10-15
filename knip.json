@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreWorkspaces": ["examples/*"],
+  "ignoreFiles": ["packages/heyo-status/src/theme/**/*.css"],
+  "ignoreDependencies": ["astro", "next"],
+  "workspaces": {
+    "packages/heyo-status": {
+      "entry": [
+        "src/index.ts",
+        "src/config.ts",
+        "src/types.ts",
+        "test/**/*.test.{ts,tsx}"
+      ],
+      "project": ["src/**/*.{ts,tsx,css}", "test/**/*.{ts,tsx}"]
+    },
+    "packages/create-heyo-status": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

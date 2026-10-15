@@ -46,15 +46,15 @@ yarn dlx @heyo-sh/create-heyo-status
 bun create @heyo-sh/heyo-status
 ```
 
-Bun 1.4.3+ must be installed regardless of which package manager installs
-dependencies: the generated development scripts and `heyo-status` CLI run with
-Bun, and older versions ignore the Vercel security overrides. Production
-framework servers can run on their supported Node or Worker runtime.
+The generated CLI and `dev` scripts require Bun 1.4.3+, even if you install
+and run scripts with pnpm, npm or Yarn. Production servers can use their
+framework's supported Node or Worker runtime (Node 20.19+ for native TCP/TLS
+checks in Next.js and React Router, or Node 22.12+ for Astro 7).
 
 For a Bun starter without prompts:
 
 ```bash
-bun create @heyo-sh/heyo-status my-status-page
+bun create @heyo-sh/heyo-status my-status-page --template react-router
 cd my-status-page
 cp .env.example .env
 bun dev
@@ -86,7 +86,10 @@ export default heyoStatus({
 
 Use the D1 or PostgreSQL adapters in their respective deployment environments;
 SQLite needs a writable local disk. The generated projects include the right
-adapter and migration setup for their selected target.
+adapter and migration setup for their selected target. The page `title` remains
+its metadata and notification name; `branding.logo` controls the header image,
+and optional `branding.name` adds text beside it. Starters include a replaceable
+Heyo mark at `/heyo.svg`.
 
 ## Status page and API
 
@@ -121,28 +124,19 @@ files for the configured routes or Worker handler.
 ## Themes and styling
 
 Five layouts ship with Heyo Status: `slate`, `fern`, `onyx`, `dune` and `reed`.
-Set `theme` in the configuration to choose the layout. Import one stylesheet
-in the application's root layout; it includes Tailwind, heyo-ui tokens and
-the tokens for every theme:
+Set `theme` in the configuration to choose the layout and its tokens. Import
+one stylesheet in the application's root layout:
 
 ```ts
-import "@heyo-sh/heyo-status/theme/slate.css";
+import "@heyo-sh/heyo-status/theme/status.css";
 ```
 
-The import is an alias for the shared stylesheet: changing the `theme` value
-also selects the appropriate theme tokens via `data-theme`. Use stable
+It includes Tailwind, heyo-ui tokens and the tokens for every theme, selected
+via `data-theme`. Changing the theme needs no CSS import change. Use stable
 `data-slot` attributes for project-level CSS overrides. Colour mode follows
 the system by default, or can be set to `light` or `dark`.
 
 See the [UI and theme documentation](https://github.com/heyo-sh/heyo-docs/blob/main/docs/heyo-status/README.md) and the [metrics guide](https://github.com/heyo-sh/heyo-docs/blob/main/docs/heyo-status/metrics.md).
-
-## Development
-
-Run `bun run quality` for formatting, types, unit tests and package builds.
-Run `bun run example smoke` to exercise all six framework/deployment examples
-against local D1 and PostgreSQL (an existing server or Docker). These checks
-also run in CI. See [examples/README.md](./examples/README.md) for setup and
-cleanup details.
 
 ## License
 

@@ -1,0 +1,3 @@
+# The DOM has to exist before Bun imports any test file; see the preload.
+[test]
+preload = ["./packages/heyo-status/test/setup-dom.ts"]

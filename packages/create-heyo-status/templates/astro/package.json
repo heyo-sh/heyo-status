@@ -1,0 +1,37 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "private": true,
+  "type": "module",
+  "packageManager": "{{PACKAGE_MANAGER}}",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "overrides": {
+    "http-cache-semantics": "4.3.0",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2"
+  },
+  "scripts": {
+    "dev": "heyo-status dev -- bunx --bun astro dev",
+    "build": "astro build",
+    "start": "node ./dist/server/entry.mjs",
+    "check": "heyo-status check run",
+    "db:migrate": "heyo-status db migrate",
+    "db:seed": "heyo-status db seed --uptime 99.95 --days 90"
+  },
+  "dependencies": {
+    "@astrojs/node": "11.1.7",
+    "@astrojs/react": "7.0.1",
+    "@heyo-sh/heyo-status": "{{HEYO_STATUS_VERSION}}",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "7.3.8",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.0"
+  }
+}

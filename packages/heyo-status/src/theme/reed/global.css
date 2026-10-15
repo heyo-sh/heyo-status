@@ -1,0 +1,8 @@
+/*
+ * Reed — the narrow one: a minimal single column, no cards, no badges.
+ *
+ * Legacy alias for theme/status.css. Every bundled theme's tokens ship in the
+ * shared stylesheet, scoped to the page shell's `data-theme` attribute.
+ * `theme` in heyo-status.config.ts selects the look.
+ */
+@import "../status.css";

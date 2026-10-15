@@ -1,0 +1,16 @@
+{
+  "name": "{{PROJECT_NAME}}",
+  "main": "src/status-worker.ts",
+  "compatibility_date": "2026-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "dist", "binding": "ASSETS" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "{{PROJECT_NAME}}",
+      "database_id": "replace-me",
+      "migrations_dir": "migrations",
+    },
+  ],
+  "triggers": { "crons": ["*/5 * * * *", "10 0 * * *", "0 3 * * *"] },
+}

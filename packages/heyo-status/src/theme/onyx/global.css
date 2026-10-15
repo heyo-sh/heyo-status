@@ -1,0 +1,9 @@
+/*
+ * Onyx — incidents as the headline: a global banner, a flat component list
+ * and the incident history as a dated timeline.
+ *
+ * Legacy alias for theme/status.css. Every bundled theme's tokens ship in the
+ * shared stylesheet, scoped to the page shell's `data-theme` attribute.
+ * `theme` in heyo-status.config.ts selects the look.
+ */
+@import "../status.css";

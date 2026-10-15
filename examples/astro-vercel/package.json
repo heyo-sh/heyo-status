@@ -1,0 +1,25 @@
+{
+  "name": "@heyo-sh/example-astro-vercel",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "db:migrate": "bun run scripts/migrate.ts"
+  },
+  "dependencies": {
+    "@astrojs/react": "7.0.1",
+    "@astrojs/vercel": "11.0.13",
+    "@heyo-sh/heyo-status": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "7.3.8",
+    "drizzle-orm": "^0.45.3",
+    "pg": "^8.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.0"
+  }
+}

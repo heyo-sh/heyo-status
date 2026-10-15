@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="Heyo Status incident timeline preview">
+  <rect width="1200" height="520" fill="#f8fafc"/>
+  <rect x="80" y="56" width="1040" height="408" rx="20" fill="#fff" stroke="#e2e8f0"/>
+  <text x="130" y="122" fill="#0f172a" font-family="Arial, sans-serif" font-size="28" font-weight="700">Active incidents</text>
+  <rect x="130" y="158" width="940" height="238" rx="14" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="170" y="210" fill="#9a3412" font-family="Arial, sans-serif" font-size="21" font-weight="700">Elevated API error rates</text>
+  <rect x="725" y="181" width="106" height="30" rx="15" fill="#ffedd5"/>
+  <text x="743" y="202" fill="#c2410c" font-family="Arial, sans-serif" font-size="13" font-weight="700">Identified</text>
+  <text x="170" y="245" fill="#7c2d12" font-family="Arial, sans-serif" font-size="15">Affected: Public API</text>
+  <line x1="184" y1="283" x2="184" y2="356" stroke="#fdba74" stroke-width="3"/>
+  <circle cx="184" cy="287" r="8" fill="#f97316"/>
+  <text x="212" y="290" fill="#334155" font-family="Arial, sans-serif" font-size="15" font-weight="700">Investigating · 10:02 UTC</text>
+  <text x="212" y="315" fill="#64748b" font-family="Arial, sans-serif" font-size="14">We are investigating elevated error rates.</text>
+  <circle cx="184" cy="356" r="8" fill="#f97316"/>
+  <text x="212" y="359" fill="#334155" font-family="Arial, sans-serif" font-size="15" font-weight="700">Identified · 10:16 UTC</text>
+  <text x="212" y="384" fill="#64748b" font-family="Arial, sans-serif" font-size="14">A connection-pool limit has been raised.</text>
+</svg>
