@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@astrojs/react": "7.0.1",
-    "@astrojs/vercel": "11.0.13",
+    "@astrojs/vercel": "11.0.14",
     "@heyo-sh/heyo-status": "workspace:*",
     "@tailwindcss/postcss": "^4.1.14",
     "@tailwindcss/vite": "^4.3.3",
