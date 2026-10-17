@@ -1,3 +1,4 @@
+import { isPublicIncident } from "./incident-visibility";
 import type { Incident, StatusPageConfig } from "./types";
 
 /** Produces a standards-compliant RSS 2.0 feed for the public incident history. */
@@ -8,8 +9,11 @@ export function createRssFeed(
 ): string {
   const pageUrl = publicPageUrl(config, origin);
   const feedUrl = feedSelfUrl(config, origin, "rss.xml");
-  const latest = latestIncidentDate(incidents);
-  const items = incidents
+  const publicIncidents = incidents.filter((incident) =>
+    isPublicIncident(config, incident),
+  );
+  const latest = latestIncidentDate(publicIncidents);
+  const items = publicIncidents
     .map((incident) => {
       const link = incidentUrl(pageUrl, incident.id);
       return [
@@ -49,8 +53,11 @@ export function createAtomFeed(
 ): string {
   const pageUrl = publicPageUrl(config, origin);
   const feedUrl = feedSelfUrl(config, origin, "atom.xml");
-  const latest = latestIncidentDate(incidents);
-  const entries = incidents
+  const publicIncidents = incidents.filter((incident) =>
+    isPublicIncident(config, incident),
+  );
+  const latest = latestIncidentDate(publicIncidents);
+  const entries = publicIncidents
     .map((incident) => {
       const link = incidentUrl(pageUrl, incident.id);
       return [

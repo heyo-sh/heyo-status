@@ -28,7 +28,7 @@ export interface MonitorConfig {
   description?: string;
   /** Optional public group/category, for example "Frontend". */
   group?: string;
-  /** Private monitors are checked but omitted from public snapshots. */
+  /** Checked and can alert operators, but hidden from public monitor data and automatic incidents. */
   private?: boolean;
 }
 

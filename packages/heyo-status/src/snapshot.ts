@@ -1,3 +1,4 @@
+import { isPublicIncident } from "./incident-visibility";
 import type {
   CheckResult,
   DailySummary,
@@ -71,7 +72,8 @@ export function buildStatusSnapshot(
   const hasData = monitors.some((monitor) => monitor.latestCheckedAt !== null);
 
   const activeIncidents = incidents.filter(
-    (incident) => incident.status !== "resolved",
+    (incident) =>
+      incident.status !== "resolved" && isPublicIncident(config, incident),
   );
   // Both upcoming and running windows are public: dropping in-progress ones
   // would leave the page reporting "Under Maintenance" with nothing to explain
