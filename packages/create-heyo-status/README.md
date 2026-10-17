@@ -6,7 +6,6 @@ project: a framework template, a database adapter and a deployment overlay.
 ```bash
 bun create @heyo-sh/heyo-status my-status-page
 cd my-status-page
-cp .env.example .env
 bun run dev
 ```
 
@@ -30,20 +29,24 @@ create-heyo-status [project-name]
 
 ## Deployment and database pairs
 
-Each target is paired with a supported database. Set deployment credentials
-and apply remote migrations before publishing:
+Each target is paired with a supported database. Configure the database in
+`heyo-status.database.ts`, and set `adminToken` and (for Vercel) `cronSecret` in
+`heyo-status.config.ts`. Keep production credentials out of version control.
+Apply remote migrations before publishing:
 
 | Deployment   | Database             | Local workflow                                               |
 | ------------ | -------------------- | ------------------------------------------------------------ |
 | `cloudflare` | D1                   | `bun run dev` migrates local D1 and builds/serves the Worker |
-| `vercel`     | PostgreSQL           | `bun run dev` with `DATABASE_URL`                            |
-| `later`      | SQLite or PostgreSQL | `bun run dev` (set `DATABASE_URL` for PostgreSQL)            |
+| `vercel`     | PostgreSQL           | `bun run dev` after configuring PostgreSQL                   |
+| `later`      | SQLite or PostgreSQL | `bun run dev` after configuring the database                 |
 
 Cloudflare's `bun run dev` serves the actual bundled Worker, not a framework
 hot-reload proxy. It rebuilds after each restart; re-run it after code changes.
 Before deploying to Cloudflare run `wrangler d1 migrations apply <name> --remote`.
-Vercel requires `DATABASE_URL`, `CRON_SECRET` and `bun run db:migrate` before
-cron routes can operate.
+Vercel itself sends the platform `CRON_SECRET` as a bearer token to cron routes.
+Set it in Vercel settings and configure the matching `cronSecret` in the status
+config; the routes stay closed until you do. Run `bun run db:migrate` before
+deploying. Heyo Status does not read `CRON_SECRET` or `DATABASE_URL` implicitly.
 
 ## Themes
 

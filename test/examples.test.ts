@@ -128,6 +128,22 @@ describe("deployment examples", () => {
     },
   );
 
+  test.each(["next-cloudflare", "astro-cloudflare", "react-router-cloudflare"])(
+    "%s reads the management token from the Worker binding",
+    async (name) => {
+      const source = await readFile(join(root, name, configPath), "utf8");
+      expect(source).toContain("adminToken: env.HEYO_STATUS_API_TOKEN");
+    },
+  );
+
+  test("provides .dev.vars to every D1 example in the smoke harness", async () => {
+    const source = await readFile(join(root, "../scripts/examples.ts"), "utf8");
+    expect(source).toContain('if (example.database === "d1")');
+    expect(source).toContain(
+      'writeFile(localVars, `HEYO_STATUS_API_TOKEN="${adminToken}"\\n`)',
+    );
+  });
+
   test.each(examples)(
     "$name is written without any",
     async ({ name, page }) => {

@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 
-import { hasBearerToken, readEnvironmentSecret } from "./auth";
+import { hasBearerToken } from "./auth";
 import {
   createMonitorBadge,
   createOverallBadge,
@@ -102,7 +102,7 @@ export function createStatusApp(
 
   // Read routes have nothing to recover from, but the API must answer with one
   // shape. Without this, a database that is unreachable — an unbound Cloudflare
-  // binding, a missing DATABASE_URL — returned Hono's plain-text 500 and threw
+  // binding or a missing database connection — returned Hono's plain-text 500 and threw
   // the actionable message away.
   app.onError((error, context) => apiError(context, error));
 
@@ -631,8 +631,7 @@ async function findSubscription(
 }
 
 /**
- * Requires `Authorization: Bearer <token>`. The token comes from configuration
- * or `HEYO_STATUS_API_TOKEN`; without one the management API stays closed
+ * Requires `Authorization: Bearer <token>` from configuration; without one the management API stays closed
  * rather than silently public.
  */
 function adminAuth(config: StatusPageConfig) {
@@ -643,14 +642,12 @@ function adminAuth(config: StatusPageConfig) {
     },
     next: () => Promise<void>,
   ): Promise<Response | void> => {
-    // Workers and Deno do not always expose process.env; treat it as optional.
-    const token =
-      config.adminToken ?? readEnvironmentSecret("HEYO_STATUS_API_TOKEN");
+    const token = config.adminToken?.trim();
     if (!token) {
       return context.json(
         {
           error:
-            "The management API is disabled. Set adminToken or HEYO_STATUS_API_TOKEN.",
+            "The management API is disabled. Set adminToken in heyo-status.config.ts.",
         },
         503,
       );

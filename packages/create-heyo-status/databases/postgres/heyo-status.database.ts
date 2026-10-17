@@ -4,16 +4,13 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 /**
- * The pool is created on the first query rather than on import, so a build
- * step or a CLI invocation without `DATABASE_URL` reports an actionable error
- * instead of failing while the configuration module is being loaded.
+ * Configure your database here. Replace this example with a private connection
+ * string before deployment; do not commit production credentials to git.
+ * The pool remains lazy so builds do not need a live database connection.
  */
-export const database = lazyStatusDatabase(() => {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL is required when using the PostgreSQL database overlay.",
-    );
-  }
-  return postgres(drizzle(new Pool({ connectionString })));
-});
+const connectionString =
+  "postgres://postgres:postgres@localhost:5432/{{PROJECT_NAME}}";
+
+export const database = lazyStatusDatabase(() =>
+  postgres(drizzle(new Pool({ connectionString }))),
+);

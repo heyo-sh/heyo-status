@@ -87,10 +87,10 @@ export const statusPage = heyoStatus({
   metrics: { badges: true, prometheus: false },
   // Required by the /api/heyo-status/admin/* management endpoints. Without a
   // token they stay closed, so a public status page can never be edited.
-  adminToken: process.env.HEYO_STATUS_API_TOKEN,
-  // Anonymous adoption telemetry; set to false or export
-  // HEYO_TELEMETRY_DISABLED=1 to opt out.
-  telemetry: true,
+  // Uncomment and supply a secret to enable management routes.
+  // adminToken: "replace-with-a-secret",
+  // For Vercel cron, use the same secret as the CRON_SECRET in Vercel settings.
+  // cronSecret: "replace-with-a-secret",
 });
 
 export default statusPage;

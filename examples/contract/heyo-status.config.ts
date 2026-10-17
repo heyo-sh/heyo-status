@@ -142,8 +142,6 @@ export const statusPage = heyoStatus({
   cache: {
     snapshotTtlMs: 30_000,
   },
-
-  telemetry: true,
 });
 
 export default statusPage;

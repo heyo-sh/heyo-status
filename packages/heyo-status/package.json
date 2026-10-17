@@ -102,10 +102,6 @@
       "types": "./dist/metrics.d.ts",
       "default": "./dist/metrics.js"
     },
-    "./telemetry": {
-      "types": "./dist/telemetry.d.ts",
-      "default": "./dist/telemetry.js"
-    },
     "./feeds": {
       "types": "./dist/feeds.d.ts",
       "default": "./dist/feeds.js"
@@ -168,7 +164,7 @@
   "scripts": {
     "dev": "bun run build --watch",
     "build": "rm -rf dist && bun run build:core && bun run build:worker && bun run build:ui && bun run build:types && bun run copy:assets",
-    "build:core": "bun build src/index.ts src/config.ts src/types.ts src/checks.ts src/db.ts src/db/d1.ts src/db/lazy.ts src/db/postgres.ts src/api.ts src/snapshot.ts src/badge.ts src/metrics.ts src/telemetry.ts src/feeds.ts src/subscribers.ts src/notifications.ts src/cli.ts src/adapters/next.ts src/adapters/astro.ts src/adapters/react-router.ts src/deployments/cloudflare.ts src/deployments/vercel.ts src/deployments/node.ts --outdir dist --root src --target node --production --external zod --external drizzle-orm --external hono",
+    "build:core": "bun build src/index.ts src/config.ts src/types.ts src/checks.ts src/db.ts src/db/d1.ts src/db/lazy.ts src/db/postgres.ts src/api.ts src/snapshot.ts src/badge.ts src/metrics.ts src/feeds.ts src/subscribers.ts src/notifications.ts src/cli.ts src/adapters/next.ts src/adapters/astro.ts src/adapters/react-router.ts src/deployments/cloudflare.ts src/deployments/vercel.ts src/deployments/node.ts --outdir dist --root src --target node --production --external zod --external drizzle-orm --external hono",
     "build:worker": "bun build src/config.ts src/api.ts src/db/d1.ts src/db/lazy.ts src/adapters/next.ts src/adapters/astro.ts src/adapters/react-router.ts src/deployments/cloudflare.ts --outdir dist --root src --target browser --production --external zod --external drizzle-orm --external hono",
     "build:ui": "bun build src/ui.ts src/ui/subscribe-dialog.tsx src/theme/provider.tsx --outdir dist --target browser --production --splitting --banner='\"use client\";' --external react --external react-dom --external react/jsx-runtime --external @heyo-sh/heyo-ui && bun build src/theme/script.ts --outfile dist/theme/script.js --target browser --production",
     "build:types": "tsc -p tsconfig.build.json",

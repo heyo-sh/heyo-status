@@ -29,7 +29,7 @@
     "quality:pre-push": "bun run lint && bun run knip && bun run typecheck && bun test",
     "quality": "bun run lint && bun run knip && bun run typecheck && bun test && bun run build",
     "changeset": "changeset",
-    "version-packages": "changeset version && bun scripts/sync-version.ts",
+    "version-packages": "changeset version",
     "release": "changeset publish"
   },
   "devDependencies": {

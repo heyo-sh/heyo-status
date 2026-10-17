@@ -79,7 +79,6 @@ try {
       cwd: projectPath,
       detached: true,
       stdio: ["ignore", descriptor, descriptor],
-      env: { ...process.env, HEYO_TELEMETRY_DISABLED: "1" },
     });
     try {
       await waitForStatus(child, log);

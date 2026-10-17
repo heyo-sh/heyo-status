@@ -2,7 +2,6 @@ import { z } from "zod";
 
 import { defaultStatusBasePath } from "./base-path";
 import { createStatusPage } from "./runtime";
-import { defaultTelemetryEndpoint } from "./telemetry";
 import { builtInStatusThemeNames, defaultStatusThemeName } from "./theme/names";
 import type {
   JsonValue,
@@ -357,17 +356,7 @@ const configSchema = z
       })
       .strict()
       .prefault({}),
-    telemetry: z
-      .union([
-        z.boolean(),
-        z
-          .object({
-            enabled: z.boolean().default(true),
-            endpoint: httpUrl.default(defaultTelemetryEndpoint),
-          })
-          .strict(),
-      ])
-      .prefault({}),
+    cronSecret: nonEmptyString.optional(),
   })
   .strict();
 
@@ -384,6 +373,7 @@ export function validateStatusPageConfig(
     siteUrl: parsed.siteUrl?.replace(/\/$/, ""),
     basePath: parsed.basePath,
     ...(parsed.adminToken ? { adminToken: parsed.adminToken } : {}),
+    ...(parsed.cronSecret ? { cronSecret: parsed.cronSecret } : {}),
     theme: parsed.theme,
     colors: parsed.colors,
     mode: parsed.mode,
@@ -399,10 +389,6 @@ export function validateStatusPageConfig(
     metrics: parsed.metrics,
     subscribers: parsed.subscribers,
     cache: parsed.cache,
-    telemetry:
-      typeof parsed.telemetry === "boolean"
-        ? { enabled: parsed.telemetry, endpoint: defaultTelemetryEndpoint }
-        : parsed.telemetry,
   };
 }
 

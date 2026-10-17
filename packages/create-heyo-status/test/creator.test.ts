@@ -104,8 +104,11 @@ describe("create-heyo-status", () => {
       expect(config).toContain('name: "Website"');
       expect(config).toContain('theme: "slate"');
       expect(await Bun.file(join(projectPath, ".env.example")).exists()).toBe(
-        true,
+        false,
       );
+      expect(config).toContain("// adminToken:");
+      expect(config).not.toContain("process.env");
+      expect(config).not.toContain("telemetry:");
       expect(config).toContain('branding: { logo: "/heyo.svg" }');
       const logo = await readFile(join(projectPath, "public/heyo.svg"), "utf8");
       expect(logo).toContain('viewBox="0 0 2408 2402"');
@@ -534,9 +537,14 @@ describe("create-heyo-status", () => {
       "utf8",
     );
     expect(vercel).toContain("/api/cron/checks");
-    expect(cronRoute).toContain("vercelCronHandler");
-    expect(
-      await Bun.file(join(projectPath, "heyo-status.database.ts")).text(),
-    ).toContain("DATABASE_URL");
+    expect(cronRoute).toContain("vercelCronHandler(statusPage");
+    expect(cronRoute).not.toContain("process.env");
+    const adapter = await Bun.file(
+      join(projectPath, "heyo-status.database.ts"),
+    ).text();
+    expect(adapter).toContain(
+      "postgres://postgres:postgres@localhost:5432/status-vercel",
+    );
+    expect(adapter).not.toContain("process.env");
   });
 });

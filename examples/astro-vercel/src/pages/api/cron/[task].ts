@@ -17,6 +17,6 @@ export const GET: APIRoute = async ({ params, request }) => {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
   return vercelCronHandler(statusPage, task, {
-    secret: import.meta.env.CRON_SECRET,
+    secret: statusPage.cronSecret,
   })(request);
 };

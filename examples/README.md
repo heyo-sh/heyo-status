@@ -53,10 +53,13 @@ collides and no run reads another's rows:
   generated starter, restart `dev` after changing application code (no hot
   reload). This avoids an upstream Astro/Cloudflare dev-runner crash on Linux.
 
-The harness injects `HEYO_STATUS_API_TOKEN` and `CRON_SECRET`, so the smoke run
-exercises the write half of the API — running checks, opening and resolving an
-incident, then reading it back out of the snapshot, the incident list and the
-feed — through each adapter. `up` runs one check before printing the URLs so the
+The Vercel configs explicitly read the harness-provided `HEYO_STATUS_API_TOKEN`
+and `CRON_SECRET` and pass them as `adminToken` and `cronSecret`. Cloudflare
+configs read the management token from a Worker binding; the harness writes a
+temporary `.dev.vars` file for each local Worker. The library never reads
+either variable implicitly. The smoke run exercises the write half of the API
+— running checks, opening and resolving an incident, then reading it back out
+of the snapshot, incident list and feed — through each adapter. `up` runs one check before printing the URLs so the
 page is never empty. Dev-server output lands in `.heyo-playground/<name>.log`.
 CI also builds all six projects, bundles the Cloudflare targets and boots their
 actual Workers in `wrangler dev`; the Next and React Router framework dev

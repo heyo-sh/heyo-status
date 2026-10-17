@@ -1,4 +1,4 @@
-import { hasBearerToken, readEnvironmentSecret } from "../auth";
+import { hasBearerToken } from "../auth";
 import {
   postgres,
   PostgresStatusDatabase,
@@ -43,7 +43,7 @@ export async function runVercelCron(
 /**
  * App Router compatible wrapper for Vercel Cron routes.
  *
- * The secret comes from `options.secret` or `CRON_SECRET`. Without one the
+ * The secret comes from `options.secret` or `statusPage.cronSecret`. Without one the
  * route refuses every request rather than staying open: `cleanup` deletes
  * history and `checks` sends outbound requests to every configured monitor,
  * so an unauthenticated trigger is both destructive and abusable.
@@ -54,13 +54,12 @@ export function vercelCronHandler(
   options: { secret?: string } = {},
 ): (request: Request) => Promise<Response> {
   return async (request) => {
-    const secret =
-      options.secret?.trim() || readEnvironmentSecret("CRON_SECRET");
+    const secret = options.secret?.trim() || statusPage.cronSecret?.trim();
     if (!secret) {
       return Response.json(
         {
           error:
-            "Cron routes are disabled. Set CRON_SECRET, or pass a secret to vercelCronHandler.",
+            "Cron routes are disabled. Set cronSecret in heyo-status.config.ts or pass a secret to vercelCronHandler.",
         },
         { status: 503 },
       );

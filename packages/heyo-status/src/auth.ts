@@ -5,15 +5,6 @@
  * anonymous visitor.
  */
 
-/** Reads a trimmed environment variable where `process.env` exists. */
-export function readEnvironmentSecret(name: string): string | undefined {
-  const environment = (
-    globalThis as { process?: { env?: Record<string, string | undefined> } }
-  ).process?.env;
-  const value = environment?.[name]?.trim();
-  return value ? value : undefined;
-}
-
 /** Compares secrets in constant time so a token cannot be guessed byte by byte. */
 export function timingSafeEquals(left: string, right: string): boolean {
   const encoder = new TextEncoder();
