@@ -66,6 +66,7 @@ try {
       heyoStatusVersion: `file:${statusArchive}`,
     });
     console.log(`\n▸ published ${template}/Cloudflare`);
+    await assertSingleConfig(projectPath, "HEYO_STATUS_D1");
     await run("bun", ["install"], projectPath);
     await run("bun", ["run", "build"], projectPath);
 
@@ -92,27 +93,48 @@ try {
     }
   }
 
-  // The Vercel CLI and Astro adapter both pin vulnerable routing versions.
-  // Installing the packed generator in isolation catches scoped overrides
-  // that appear in package.json but are ignored by the package manager.
-  const { projectPath: vercelProject } = await scaffoldProject({
-    cwd: workspace,
-    projectName: "audit-astro-vercel",
-    template: "astro",
-    theme: "slate",
-    deployment: "vercel",
-    database: "postgres",
-    packageManager: "bun",
-    install: false,
-    heyoStatusVersion: `file:${statusArchive}`,
-  });
-  console.log("\n▸ published astro/Vercel");
-  await run("bun", ["install"], vercelProject);
-  await assertPatchedRouting(vercelProject);
-  await run("bun", ["run", "build"], vercelProject);
-  console.log("  ✓ Astro/Vercel: installed tarball, patched routing, build");
+  // Installing packed Vercel starters catches scoped dependency overrides
+  // ignored by package managers and database imports that break builds before
+  // a PostgreSQL connection exists. Check all three framework templates.
+  for (const template of templates) {
+    const { projectPath: vercelProject } = await scaffoldProject({
+      cwd: workspace,
+      projectName: `audit-${template}-vercel`,
+      template,
+      theme: "slate",
+      deployment: "vercel",
+      database: "postgres",
+      packageManager: "bun",
+      install: false,
+      heyoStatusVersion: `file:${statusArchive}`,
+    });
+    console.log(`\n▸ published ${template}/Vercel`);
+    await assertSingleConfig(vercelProject, "connectionString");
+    await run("bun", ["install"], vercelProject);
+    await assertPatchedRouting(vercelProject);
+    await run("bun", ["run", "build"], vercelProject);
+    console.log(
+      `  ✓ ${template}/Vercel: installed tarball, patched routing, build`,
+    );
+  }
 } finally {
   await rm(temporary, { recursive: true, force: true });
+}
+
+async function assertSingleConfig(
+  project: string,
+  databaseMarker: string,
+): Promise<void> {
+  const config = await readFile(join(project, "heyo-status.config.ts"), "utf8");
+  if (
+    !config.includes("lazyStatusDatabase") ||
+    !config.includes(databaseMarker) ||
+    config.includes("DATABASE_SETUP") ||
+    config.includes("heyo-status.database") ||
+    (await Bun.file(join(project, "heyo-status.database.ts")).exists())
+  ) {
+    throw new Error(`Database setup is not in the single config: ${project}`);
+  }
 }
 
 async function assertPatchedRouting(project: string): Promise<void> {

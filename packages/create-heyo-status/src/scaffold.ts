@@ -1,6 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, rename, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 import {
@@ -20,9 +20,8 @@ import {
 const packageRoot = resolve(import.meta.dirname, "..");
 
 /**
- * Copies a framework template, a database adapter and an optional deployment
- * overlay. The three layers make database credentials and platform files
- * replaceable without forking a framework template.
+ * Copies a framework template, embeds the selected database setup into its
+ * single config file, then applies an optional deployment overlay.
  */
 export async function scaffoldProject(
   options: CreateOptions,
@@ -72,6 +71,10 @@ export async function scaffoldProject(
   };
   const templatePath = join(packageRoot, "templates", options.template);
   const databasePath = join(packageRoot, "databases", options.database);
+  const databaseSetup = replacePlaceholders(
+    await readFile(join(databasePath, "database-setup.txt"), "utf8"),
+    placeholders,
+  ).trimEnd();
   const deploymentPath = join(
     packageRoot,
     "deployments",
@@ -81,6 +84,17 @@ export async function scaffoldProject(
 
   await mkdir(projectPath, { recursive: true });
   await copyTemplate(templatePath, projectPath, placeholders);
+  const configPath = join(projectPath, "heyo-status.config.ts");
+  const configSource = await readFile(configPath, "utf8");
+  if (!configSource.includes("// DATABASE_SETUP")) {
+    throw new Error(
+      `Generator asset is missing a database slot: ${configPath}`,
+    );
+  }
+  await writeFile(
+    configPath,
+    configSource.replace("// DATABASE_SETUP", databaseSetup),
+  );
   await restoreDotfiles(projectPath);
   await copyOverlay(databasePath, projectPath, placeholders);
   if (options.deployment !== "later") {
@@ -140,7 +154,10 @@ async function copyOverlay(
   const entries = await readdir(source, { withFileTypes: true });
   await Promise.all(
     entries
-      .filter((entry) => entry.name !== "package.json")
+      .filter(
+        (entry) =>
+          entry.name !== "package.json" && entry.name !== "database-setup.txt",
+      )
       .map((entry) =>
         copyTemplate(
           join(source, entry.name),

@@ -29,9 +29,9 @@ create-heyo-status [project-name]
 
 ## Deployment and database pairs
 
-Each target is paired with a supported database. Configure the database in
-`heyo-status.database.ts`, and set `adminToken` and (for Vercel) `cronSecret` in
-`heyo-status.config.ts`. Keep production credentials out of version control.
+Each target is paired with a supported database. Configure the database,
+`adminToken` and (for Vercel) `cronSecret` in `heyo-status.config.ts`. Keep
+production credentials out of version control.
 Apply remote migrations before publishing:
 
 | Deployment   | Database             | Local workflow                                               |
@@ -69,9 +69,9 @@ and change `branding.logo`, or set `branding.name` to show text beside the logo.
 ## What you get
 
 `heyo-status.config.ts` in the project root — the one place a status page is
-declared — with a worked set of example monitors, plus
-`heyo-status.database.ts`, one catch-all API route, an SSR status page, the
-shared theme stylesheet and a `src/styles/status.css` for your own overrides.
+declared — with the database adapter and a worked set of example monitors,
+plus one catch-all API route, an SSR status page, the shared theme stylesheet
+and a `src/styles/status.css` for your own overrides.
 
 The monitors are grouped HTTP checks, a DNS check and a composite that rolls
 them up, all pointing at `example.com`. They are there so the first check
