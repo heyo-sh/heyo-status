@@ -9,6 +9,7 @@ import {
 import { createStatusSnapshotCache, type StatusSnapshotCache } from "./cache";
 import { createAtomFeed, createRssFeed } from "./feeds";
 import { createId } from "./ids";
+import { isPublicIncident } from "./incident-visibility";
 import { createPrometheusMetrics, prometheusContentType } from "./metrics";
 import { dispatchNotifications } from "./notification-dispatcher";
 import {
@@ -17,6 +18,7 @@ import {
 } from "./subscribers";
 import type {
   CheckResult,
+  Incident,
   IncidentListOptions,
   IncidentSeverity,
   IncidentStatus,
@@ -206,7 +208,7 @@ export function createStatusApp(
   app.get("/rss.xml", async (context) => {
     if (!config.incidents.enabled) return featureDisabled(context);
     try {
-      const incidents = await config.database.listIncidents({
+      const incidents = await listPublicIncidents(config, {
         limit: feedIncidentLimit,
       });
       return xmlResponse(
@@ -221,7 +223,7 @@ export function createStatusApp(
   app.get("/atom.xml", async (context) => {
     if (!config.incidents.enabled) return featureDisabled(context);
     try {
-      const incidents = await config.database.listIncidents({
+      const incidents = await listPublicIncidents(config, {
         limit: feedIncidentLimit,
       });
       return xmlResponse(
@@ -379,7 +381,8 @@ export function createStatusApp(
     if (!config.incidents.enabled) return featureDisabled(context);
     try {
       return context.json(
-        await config.database.listIncidents(
+        await listPublicIncidents(
+          config,
           readIncidentListOptions(context.req.query()),
         ),
       );
@@ -391,7 +394,7 @@ export function createStatusApp(
   app.get("/incidents/:id", async (context) => {
     if (!config.incidents.enabled) return featureDisabled(context);
     const incident = await config.database.getIncident(context.req.param("id"));
-    return incident
+    return incident && isPublicIncident(config, incident)
       ? context.json(incident)
       : context.json({ error: "Incident not found." }, 404);
   });
@@ -807,6 +810,48 @@ function readNotificationLogOptions(
       ? { offset: readNonNegativeInt(query.offset, "offset") }
       : {}),
   };
+}
+
+// Filter before pagination so hidden legacy incidents neither leak nor occupy
+// slots in the public list or the newest-50 feeds. Database access for admins
+// and the CLI remains unchanged.
+async function listPublicIncidents(
+  config: StatusPageConfig,
+  options: IncidentListOptions,
+): Promise<Incident[]> {
+  if (!config.monitors.some((monitor) => monitor.private)) {
+    return config.database.listIncidents(options);
+  }
+
+  const { limit, offset = 0, ...filters } = options;
+  if (limit === undefined) {
+    const incidents = await config.database.listIncidents(filters);
+    return incidents
+      .filter((incident) => isPublicIncident(config, incident))
+      .slice(offset);
+  }
+  if (limit === 0) return [];
+
+  const pageSize = Math.max(50, Math.min(limit, 100));
+  const visible: Incident[] = [];
+  let skipped = 0;
+  let databaseOffset = 0;
+  while (visible.length < limit) {
+    const batch = await config.database.listIncidents({
+      ...filters,
+      limit: pageSize,
+      offset: databaseOffset,
+    });
+    for (const incident of batch) {
+      if (!isPublicIncident(config, incident)) continue;
+      if (skipped < offset) skipped += 1;
+      else visible.push(incident);
+      if (visible.length === limit) return visible;
+    }
+    databaseOffset += batch.length;
+    if (batch.length < pageSize) break;
+  }
+  return visible;
 }
 
 function readIncidentListOptions(

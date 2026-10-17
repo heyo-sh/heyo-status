@@ -2,7 +2,14 @@ import { describe, expect, test } from "bun:test";
 
 import { heyoStatus } from "../src/config";
 import { sqlite } from "../src/db";
+import { createAtomFeed, createRssFeed } from "../src/feeds";
 import { reconcileAutomaticIncidents } from "../src/incidents";
+import { createPrometheusMetrics } from "../src/metrics";
+import {
+  collectMonitorNotificationEvents,
+  dispatchNotifications,
+} from "../src/notification-dispatcher";
+import { email } from "../src/notifications";
 import type { CheckResult } from "../src/types";
 
 describe("incident and maintenance persistence", () => {
@@ -194,6 +201,255 @@ describe("incident API and monitor automation", () => {
       await expect(maintenanceDatabase.listIncidents({})).resolves.toEqual([]);
     } finally {
       maintenanceDatabase.close();
+    }
+  });
+
+  test("keeps private checks and operational alerts without opening public incidents", async () => {
+    const database = sqlite(":memory:");
+    const alerts: string[] = [];
+    try {
+      const page = heyoStatus({
+        database,
+        monitors: [
+          { name: "API", type: "http", url: "https://api.example.com" },
+          {
+            name: "Internal",
+            type: "tcp",
+            host: "db.internal",
+            port: 5432,
+            private: true,
+          },
+        ],
+        notifications: {
+          failureThreshold: 1,
+          channels: [
+            {
+              id: "ops",
+              type: "webhook",
+              events: ["monitor.down"],
+              async send(event) {
+                alerts.push(event.monitor?.name ?? "");
+              },
+            },
+          ],
+        },
+      });
+      const now = new Date("2030-01-01T00:05:00.000Z");
+      const results: CheckResult[] = [
+        failedCheck(now.toISOString()),
+        {
+          ...failedCheck(now.toISOString()),
+          name: "Internal",
+          type: "tcp",
+          message: "ECONNREFUSED db.internal",
+        },
+      ];
+      const monitorEvents = await collectMonitorNotificationEvents(
+        page,
+        results,
+        now,
+      );
+      await database.insertCheckResults(results);
+      const incidentEvents = await reconcileAutomaticIncidents(
+        page,
+        results,
+        now,
+      );
+      await dispatchNotifications(page, [...monitorEvents, ...incidentEvents]);
+
+      expect(alerts).toContain("Internal");
+      expect(await database.getSnapshot(["Internal"], 1, now)).toMatchObject({
+        results: [expect.objectContaining({ name: "Internal", status: false })],
+      });
+      expect(incidentEvents).toHaveLength(1);
+      expect(await database.listIncidents({})).toMatchObject([
+        { auto: true, affectedMonitors: ["API"] },
+      ]);
+    } finally {
+      database.close();
+    }
+  });
+
+  test("hides existing private automatic incidents from every public surface", async () => {
+    const database = sqlite(":memory:");
+    const messages: string[][] = [];
+    try {
+      const page = heyoStatus({
+        database,
+        title: "Acme Status",
+        siteUrl: "https://status.acme.test",
+        monitors: [
+          { name: "API", type: "http", url: "https://api.example.com" },
+          {
+            name: "Internal",
+            type: "tcp",
+            host: "db.internal",
+            port: 5432,
+            private: true,
+          },
+        ],
+        metrics: { prometheus: true },
+        subscribers: { enabled: true },
+        notifications: {
+          channels: [
+            email({
+              transport: "smtp",
+              from: "status@acme.test",
+              to: ["ops@acme.test"],
+              async send(message) {
+                messages.push(message.to);
+              },
+            }),
+          ],
+        },
+        cache: { snapshotTtlMs: 0 },
+      });
+      await database.createSubscriber({
+        type: "email",
+        target: "visitor@acme.test",
+        confirmed: true,
+      });
+      const hidden = await database.createIncident({
+        title: "Internal secret is unavailable",
+        severity: "critical",
+        affectedMonitors: ["Internal"],
+        message: "ECONNREFUSED db.internal",
+        auto: true,
+      });
+      const base = "https://status.acme.test/api/heyo-status";
+      const request = (path: string) =>
+        page.handler(new Request(`${base}${path}`));
+
+      expect(await database.listIncidents({})).toHaveLength(1); // still available to operators
+      expect(await (await request("/incidents")).json()).toEqual([]);
+      expect((await request(`/incidents/${hidden.id}`)).status).toBe(404);
+      const snapshot = await (await request("/status")).json();
+      expect(snapshot).toMatchObject({
+        overall: "operational",
+        activeIncidents: [],
+      });
+      expect(await (await request("/status/summary")).json()).toMatchObject({
+        overall: "operational",
+        activeIncidents: 0,
+      });
+      expect(await (await request("/badge/overall.svg")).text()).toContain(
+        "operational",
+      );
+      expect(await (await request("/metrics")).text()).toContain(
+        "heyo_status_active_incidents 0",
+      );
+      expect(createPrometheusMetrics(await page.api.getSnapshot())).toContain(
+        "heyo_status_active_incidents 0",
+      );
+      for (const path of ["/rss.xml", "/atom.xml"]) {
+        const xml = await (await request(path)).text();
+        expect(xml).not.toContain("Internal secret");
+        expect(xml).not.toContain("db.internal");
+      }
+      expect(createRssFeed(page, [hidden], page.siteUrl!)).not.toContain(
+        "Internal secret",
+      );
+      expect(createAtomFeed(page, [hidden], page.siteUrl!)).not.toContain(
+        "Internal secret",
+      );
+
+      await dispatchNotifications(page, {
+        type: "incident.updated",
+        incident: hidden,
+        occurredAt: new Date(),
+      });
+      expect(messages).toEqual([["ops@acme.test"]]); // not the public subscriber
+
+      const publicIncident = await database.createIncident({
+        title: "API is unavailable",
+        severity: "major",
+        affectedMonitors: ["API"],
+        message: "Investigating.",
+        auto: true,
+      });
+      const anotherHidden = await database.createIncident({
+        title: "Internal secret still unavailable",
+        severity: "major",
+        affectedMonitors: ["Internal", "API"],
+        message: "Private failure details",
+        auto: true,
+      });
+      const manual = await database.createIncident({
+        title: "Manually published notice",
+        severity: "minor",
+        affectedMonitors: ["Internal"],
+        message: "Operator chose to publish this.",
+      });
+      const publicList = await (
+        await request("/incidents?limit=1&offset=1")
+      ).json();
+      expect(publicList).toMatchObject([{ id: publicIncident.id }]);
+      expect(await (await request("/incidents?limit=1")).json()).toMatchObject([
+        { id: manual.id },
+      ]);
+      expect((await request(`/incidents/${anotherHidden.id}`)).status).toBe(
+        404,
+      );
+      expect((await request(`/incidents/${manual.id}`)).status).toBe(200);
+      for (const path of ["/rss.xml", "/atom.xml"]) {
+        const xml = await (await request(path)).text();
+        expect(xml).toContain("API is unavailable");
+        expect(xml).toContain("Manually published notice");
+        expect(xml).not.toContain("Internal secret");
+      }
+    } finally {
+      database.close();
+    }
+  });
+
+  test("feeds fill their 50 slots after skipping newer private incidents", async () => {
+    const database = sqlite(":memory:");
+    try {
+      const page = heyoStatus({
+        database,
+        monitors: [
+          { name: "API", type: "http", url: "https://api.example.com" },
+          {
+            name: "Internal",
+            type: "tcp",
+            host: "db.internal",
+            port: 5432,
+            private: true,
+          },
+        ],
+      });
+      for (let index = 0; index < 50; index += 1) {
+        await database.createIncident({
+          title: `Public incident ${index}`,
+          severity: "major",
+          affectedMonitors: ["API"],
+          message: "Public failure",
+          auto: true,
+        });
+      }
+      for (let index = 0; index < 50; index += 1) {
+        await database.createIncident({
+          title: `Secret incident ${index}`,
+          severity: "major",
+          affectedMonitors: ["Internal"],
+          message: "Internal failure",
+          auto: true,
+        });
+      }
+      for (const [path, tag] of [
+        ["rss.xml", "item"],
+        ["atom.xml", "entry"],
+      ]) {
+        const response = await page.handler(
+          new Request(`https://status.acme.test/api/heyo-status/${path}`),
+        );
+        const body = await response.text();
+        expect(body.match(new RegExp(`<${tag}>`, "g"))).toHaveLength(50);
+        expect(body).toContain("Public incident 0");
+        expect(body).not.toContain("Secret incident");
+      }
+    } finally {
+      database.close();
     }
   });
 });
