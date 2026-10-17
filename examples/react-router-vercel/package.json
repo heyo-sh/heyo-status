@@ -20,7 +20,7 @@
     "@tailwindcss/postcss": "^4.1.14",
     "drizzle-orm": "^0.45.4",
     "@react-router/dev": "^7.0.0",
-    "@react-router/node": "^7.0.0",
+    "@react-router/node": "^8.4.0",
     "@react-router/serve": "^7.0.0",
     "pg": "^8.23.1",
     "react": "^19.0.0",
