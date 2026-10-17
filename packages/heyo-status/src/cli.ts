@@ -13,11 +13,6 @@ import {
   collectMonitorNotificationEvents,
   dispatchNotifications,
 } from "./notification-dispatcher";
-import {
-  isTelemetryEnabled,
-  reportTelemetry,
-  telemetryNotice,
-} from "./telemetry";
 import type {
   CheckResult,
   IncidentSeverity,
@@ -81,10 +76,6 @@ async function runDevCommand(args: string[]): Promise<number> {
   const parsed = parseOptions(optionArgs, ["config", "port"]);
   ensureNoPositionals(parsed);
   const config = await loadStatusPage(configPathFrom(parsed));
-  if (isTelemetryEnabled(config)) {
-    console.log(telemetryNotice);
-    void reportTelemetry(config);
-  }
   const scheduler = startLocalScheduler(config);
 
   // Populate a freshly-created local database immediately. Subsequent runs are
@@ -101,9 +92,7 @@ async function runDevCommand(args: string[]): Promise<number> {
     }
   }
 
-  const port = parsed.options.port
-    ? readPort(parsed.options.port)
-    : Number(process.env.PORT ?? 3000);
+  const port = readPort(parsed.options.port ?? "3000");
   if (typeof Bun === "undefined") {
     scheduler.stop();
     throw new CliInputError(
@@ -112,7 +101,7 @@ async function runDevCommand(args: string[]): Promise<number> {
   }
 
   const server = Bun.serve({
-    port: readPort(String(port)),
+    port,
     fetch(request) {
       const url = new URL(request.url);
       if (url.pathname !== "/") return config.handler(request);
@@ -582,7 +571,7 @@ function readDate(value: string, name: string): Date {
 }
 
 function defaultConfigPath(): string {
-  return process.env.HEYO_STATUS_CONFIG ?? "heyo-status.config.ts";
+  return "heyo-status.config.ts";
 }
 
 function startOfUtcDay(value: Date): Date {

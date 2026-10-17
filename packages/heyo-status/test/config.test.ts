@@ -43,25 +43,29 @@ describe("heyoStatus", () => {
         requireConfirmation: true,
       },
       cache: { snapshotTtlMs: 30_000 },
-      telemetry: {
-        enabled: true,
-        endpoint: "https://telemetry.heyo.sh/v1/status",
-      },
     });
   });
 
-  test("accepts a boolean telemetry opt-out and a custom snapshot cache TTL", () => {
+  test("accepts configured secrets and a custom snapshot cache TTL", () => {
     const statusPage = heyoStatus({
       database: testDatabaseAdapter,
-      telemetry: false,
+      adminToken: "admin-secret",
+      cronSecret: "cron-secret",
       cache: { snapshotTtlMs: 0 },
     });
 
-    expect(statusPage.telemetry).toEqual({
-      enabled: false,
-      endpoint: "https://telemetry.heyo.sh/v1/status",
-    });
+    expect(statusPage.adminToken).toBe("admin-secret");
+    expect(statusPage.cronSecret).toBe("cron-secret");
     expect(statusPage.cache).toEqual({ snapshotTtlMs: 0 });
+  });
+
+  test("rejects the removed telemetry setting", () => {
+    expect(() =>
+      validateStatusPageConfig({
+        database: testDatabaseAdapter,
+        telemetry: true,
+      } as unknown as Parameters<typeof validateStatusPageConfig>[0]),
+    ).toThrow();
   });
 
   test("defaults composite monitors to the all strategy and validates components", () => {

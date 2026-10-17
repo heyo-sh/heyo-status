@@ -222,27 +222,7 @@ describe("management API authentication", () => {
     }
   });
 
-  test("stays closed when no token is configured or exported", async () => {
-    const database = sqlite(":memory:");
-    const previous = process.env.HEYO_STATUS_API_TOKEN;
-    delete process.env.HEYO_STATUS_API_TOKEN;
-    try {
-      const page = createPage(database);
-      const response = await page.handler(
-        new Request(
-          "https://status.acme.test/api/heyo-status/admin/incidents",
-          { method: "POST" },
-        ),
-      );
-      expect(response.status).toBe(503);
-    } finally {
-      if (previous === undefined) delete process.env.HEYO_STATUS_API_TOKEN;
-      else process.env.HEYO_STATUS_API_TOKEN = previous;
-      database.close();
-    }
-  });
-
-  test("accepts the HEYO_STATUS_API_TOKEN environment fallback", async () => {
+  test("ignores the environment and stays closed without a configured token", async () => {
     const database = sqlite(":memory:");
     const previous = process.env.HEYO_STATUS_API_TOKEN;
     process.env.HEYO_STATUS_API_TOKEN = "env-token";
@@ -250,11 +230,14 @@ describe("management API authentication", () => {
       const page = createPage(database);
       const response = await page.handler(
         new Request(
-          "https://status.acme.test/api/heyo-status/admin/checks/run",
-          { method: "POST", headers: { authorization: "Bearer env-token" } },
+          "https://status.acme.test/api/heyo-status/admin/incidents",
+          {
+            method: "POST",
+            headers: { authorization: "Bearer env-token" },
+          },
         ),
       );
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(503);
     } finally {
       if (previous === undefined) delete process.env.HEYO_STATUS_API_TOKEN;
       else process.env.HEYO_STATUS_API_TOKEN = previous;

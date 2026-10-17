@@ -466,15 +466,6 @@ export interface StatusCacheConfig {
   snapshotTtlMs: number;
 }
 
-export interface StatusTelemetryConfig {
-  /**
-   * Anonymous adoption telemetry. Environment opt-outs
-   * (`HEYO_TELEMETRY_DISABLED`, `DO_NOT_TRACK`) always win over this flag.
-   */
-  enabled: boolean;
-  endpoint: string;
-}
-
 export type SubscriberMethod = "email" | "rss" | "webhook";
 
 export interface StatusSubscribersConfig {
@@ -495,10 +486,12 @@ export interface StatusPageConfig {
    */
   basePath: string;
   /**
-   * Bearer token required by `/admin/*`. When omitted, the runtime falls back
-   * to `HEYO_STATUS_API_TOKEN` and otherwise refuses every management request.
+   * Bearer token required by `/admin/*`. When omitted, management requests
+   * are refused.
    */
   adminToken?: string;
+  /** Bearer secret for Vercel cron routes. Omit to keep the routes closed. */
+  cronSecret?: string;
   theme: StatusThemeName;
   colors: StatusColors;
   mode: StatusMode;
@@ -511,7 +504,6 @@ export interface StatusPageConfig {
   metrics: StatusMetricsConfig;
   subscribers: StatusSubscribersConfig;
   cache: StatusCacheConfig;
-  telemetry: StatusTelemetryConfig;
 }
 
 /** Input accepted by {@link heyoStatus} before defaults are applied. */
@@ -522,6 +514,7 @@ export interface UserStatusPageConfig {
   siteUrl?: string;
   basePath?: string;
   adminToken?: string;
+  cronSecret?: string;
   theme?: StatusThemeName;
   colors?: StatusColors;
   mode?: StatusMode;
@@ -534,7 +527,6 @@ export interface UserStatusPageConfig {
   metrics?: Partial<StatusMetricsConfig>;
   subscribers?: Partial<StatusSubscribersConfig>;
   cache?: Partial<StatusCacheConfig>;
-  telemetry?: boolean | Partial<StatusTelemetryConfig>;
 }
 
 export type OverallStatus =

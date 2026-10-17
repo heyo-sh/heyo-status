@@ -53,8 +53,9 @@ collides and no run reads another's rows:
   generated starter, restart `dev` after changing application code (no hot
   reload). This avoids an upstream Astro/Cloudflare dev-runner crash on Linux.
 
-The harness injects `HEYO_STATUS_API_TOKEN` and `CRON_SECRET`, so the smoke run
-exercises the write half of the API — running checks, opening and resolving an
+The example configs explicitly read the harness-provided `HEYO_STATUS_API_TOKEN`
+and `CRON_SECRET` and pass them as `adminToken` and `cronSecret`. The library
+itself never reads either variable. The smoke run therefore exercises the write half of the API — running checks, opening and resolving an
 incident, then reading it back out of the snapshot, the incident list and the
 feed — through each adapter. `up` runs one check before printing the URLs so the
 page is never empty. Dev-server output lands in `.heyo-playground/<name>.log`.

@@ -15,7 +15,5 @@ export async function GET(
   if (!tasks.has(task as VercelCronTask)) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
-  return vercelCronHandler(statusPage, task as VercelCronTask, {
-    secret: process.env.CRON_SECRET,
-  })(request);
+  return vercelCronHandler(statusPage, task as VercelCronTask)(request);
 }

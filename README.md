@@ -56,21 +56,22 @@ For a Bun starter without prompts:
 ```bash
 bun create @heyo-sh/heyo-status my-status-page --template react-router
 cd my-status-page
-cp .env.example .env
 bun dev
 ```
 
 Cloudflare starters build a local Worker and migrate local D1 when you run
 `bun dev`; they do not offer framework hot reload. Re-run the command after
 changing application code. Replace the example.com monitors and configure
-your environment before publishing real status information. For a deployment target, see the
+`heyo-status.config.ts` and `heyo-status.database.ts` before publishing real status information. For a deployment target, see the
 [deployment examples](./examples/README.md) and the
 [deployment guide](https://github.com/heyo-sh/heyo-docs/blob/main/docs/heyo-status/README.md).
 
 ## Minimum configuration
 
 `heyo-status.config.ts` at the project root is the single source of truth for
-the CLI, framework routes and scheduler. Start with a database and a monitor:
+the CLI, framework routes and scheduler. The CLI accepts `--config` for another
+path and `dev --port` for the standalone server (default: 3000); it does not
+read Heyo Status environment-variable defaults. Start with a database and a monitor:
 
 ```ts
 import { heyoStatus } from "@heyo-sh/heyo-status/config";
@@ -99,8 +100,8 @@ Each project renders an SSR status page and mounts one catch-all API route at
 `/rss.xml`, `/atom.xml`, `/badge/:name.svg` and `/healthz`. Prometheus
 `/metrics` is available when enabled in configuration.
 
-`/admin/*` requires `Authorization: Bearer <HEYO_STATUS_API_TOKEN>` and is
-disabled without a configured token. It can run checks and manage incidents and
+`/admin/*` requires `Authorization: Bearer <token>` matching `adminToken` in
+the config and is disabled without a configured token. It can run checks and manage incidents and
 maintenance windows. Public subscriptions are disabled by default; webhook
 subscriptions require an explicit `subscribers.methods` opt-in. If you enable
 visitor-supplied webhooks, restrict outbound network access as well: URL

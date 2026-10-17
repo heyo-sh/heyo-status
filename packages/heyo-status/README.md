@@ -31,7 +31,7 @@ export const statusPage = heyoStatus({
   theme: "slate",
   monitors: [{ name: "Website", type: "http", url: "https://acme.com" }],
   checks: { interval: "*/5 * * * *", retentionDays: 90, displayDays: 90 },
-  adminToken: process.env.HEYO_STATUS_API_TOKEN,
+  // adminToken: "your-private-token", // enables management routes
 });
 ```
 

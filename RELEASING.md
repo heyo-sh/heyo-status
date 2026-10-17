@@ -74,9 +74,6 @@ environment. Do not delete pending changesets merely to force an initial publish
 4. Review and merge it. The workflow then asks for approval of the `npm`
    environment and publishes the versioned packages.
 
-`src/version.ts` reports the package version to anonymous telemetry;
-`test/telemetry.test.ts` fails if it drifts from `package.json`.
-`bun run version-packages` runs Changesets and syncs this file automatically.
-Update it in the same commit as a manual version change.
+`bun run version-packages` applies the pending Changesets.
 
 Never publish from a local machine.

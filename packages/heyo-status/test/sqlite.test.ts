@@ -179,8 +179,8 @@ describe("embedded SQLite runtime selection", () => {
 });
 
 /**
- * A Cloudflare binding exists per request and `DATABASE_URL` only exists on the
- * deployment, but a status configuration is a module-level value. Constructing
+ * A Cloudflare binding exists per request and a database connection may not
+ * exist at build time, but a status configuration is a module-level value. Constructing
  * the adapter eagerly turned both into an unhandled module error that took the
  * whole framework process down instead of failing one request.
  */

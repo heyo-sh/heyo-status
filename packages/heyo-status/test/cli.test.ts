@@ -3,6 +3,7 @@ import { Database } from "bun:sqlite";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { matchesCronExpression, runCli } from "../src/cli";
 
@@ -14,6 +15,28 @@ afterEach(async () => {
       .splice(0)
       .map((directory) => rm(directory, { recursive: true })),
   );
+});
+
+test("does not use HEYO_STATUS_CONFIG as a default path", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "heyo-status-cli-env-"));
+  temporaryDirectories.push(directory);
+  const configPath = join(directory, "other.config.ts");
+  await writeFile(configPath, 'throw new Error("loaded environment config");');
+  const result = Bun.spawnSync(
+    [
+      "bun",
+      fileURLToPath(new URL("../src/cli.ts", import.meta.url)),
+      "check",
+      "run",
+    ],
+    {
+      cwd: directory,
+      env: { ...process.env, HEYO_STATUS_CONFIG: configPath },
+    },
+  );
+  expect(result.exitCode).toBe(1);
+  expect(result.stderr.toString()).toContain("heyo-status.config.ts");
+  expect(result.stderr.toString()).not.toContain("loaded environment config");
 });
 
 test("check run loads configuration, persists results, and returns a healthy exit code", async () => {

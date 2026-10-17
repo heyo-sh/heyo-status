@@ -625,7 +625,6 @@ async function startDevServer(
         ...environment,
         HEYO_STATUS_API_TOKEN: adminToken,
         CRON_SECRET: cronSecret,
-        HEYO_TELEMETRY_DISABLED: "1",
         NODE_ENV: "development",
         BROWSER: "none",
       },

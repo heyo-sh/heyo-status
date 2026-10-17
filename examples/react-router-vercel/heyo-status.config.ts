@@ -11,6 +11,7 @@ export const statusPage = heyoStatus({
   theme: "slate",
   branding: { logo: "/heyo.svg" },
   adminToken: process.env.HEYO_STATUS_API_TOKEN,
+  cronSecret: process.env.CRON_SECRET,
   siteUrl: "https://status.example.com",
   /*
    * A realistic page rather than a single monitor: grouped services, every

@@ -27,7 +27,7 @@ export type StatusDatabaseResolver = () =>
  *
  * A status configuration is a module-level value, so a database that can only
  * be built from a per-request platform binding (Cloudflare D1) or a deployment
- * secret (`DATABASE_URL`) would otherwise have to throw while the module is
+ * database connection that is not available at build time would otherwise throw while the module is
  * being imported. That turns a missing binding into an unhandled module error
  * which takes down the whole framework process, including the pages that do
  * not touch the database, and makes every template import order-sensitive.
@@ -42,8 +42,8 @@ export function lazyStatusDatabase(
   let pending: Promise<StatusDatabaseAdapter> | undefined;
 
   const database = async (): Promise<StatusDatabaseAdapter> => {
-    // A failed resolution is not cached: a missing environment variable can be
-    // fixed by a restart-free redeploy, and retrying costs one call.
+    // A failed resolution is not cached: a binding or connection can become
+    // available later, and retrying costs one call.
     pending ??= (async () => resolve())().catch((error: unknown) => {
       pending = undefined;
       throw error;

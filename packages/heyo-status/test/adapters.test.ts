@@ -102,29 +102,32 @@ describe("framework and deployment adapters", () => {
       Response,
     );
 
-    // `checks` sends outbound requests to every monitor and `cleanup` deletes
-    // history, so an unconfigured secret must close the route, not open it.
+    const configuredPage = { ...page, cronSecret: "configured-secret" };
+    const configured = await vercelCronHandler(
+      configuredPage,
+      "checks",
+    )(
+      new Request("https://status.example/api/cron", {
+        headers: { authorization: "Bearer configured-secret" },
+      }),
+    );
+    expect(configured.status).toBe(200);
+
+    // An unconfigured secret closes the route even when one is exported.
     const previousSecret = process.env.CRON_SECRET;
-    delete process.env.CRON_SECRET;
+    process.env.CRON_SECRET = "from-environment";
     calls.length = 0;
     try {
       const unconfigured = await vercelCronHandler(
         page,
         "cleanup",
-      )(new Request("https://status.example/api/cron"));
-      expect(unconfigured.status).toBe(503);
-      expect(calls).toEqual([]);
-
-      process.env.CRON_SECRET = "from-environment";
-      const fromEnvironment = await vercelCronHandler(
-        page,
-        "checks",
       )(
         new Request("https://status.example/api/cron", {
           headers: { authorization: "Bearer from-environment" },
         }),
       );
-      expect(fromEnvironment.status).toBe(200);
+      expect(unconfigured.status).toBe(503);
+      expect(calls).toEqual([]);
     } finally {
       if (previousSecret === undefined) delete process.env.CRON_SECRET;
       else process.env.CRON_SECRET = previousSecret;

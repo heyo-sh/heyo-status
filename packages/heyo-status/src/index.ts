@@ -12,16 +12,6 @@ export {
   type StatusSnapshotCacheOptions,
 } from "./cache";
 export { createPrometheusMetrics, prometheusContentType } from "./metrics";
-export {
-  createTelemetryPayload,
-  defaultTelemetryEndpoint,
-  isTelemetryEnabled,
-  reportTelemetry,
-  telemetryNotice,
-  type TelemetryOptions,
-  type TelemetryPayload,
-} from "./telemetry";
-export { heyoStatusVersion } from "./version";
 export { statusHandler as astroStatusHandler } from "./adapters/astro";
 export { statusHandler as nextStatusHandler } from "./adapters/next";
 export { statusHandler as reactRouterStatusHandler } from "./adapters/react-router";
