@@ -103,6 +103,13 @@ describe("create-heyo-status", () => {
       expect(packageJson.scripts["db:seed"]).toContain("--uptime 99.95");
       expect(config).toContain('name: "Website"');
       expect(config).toContain('theme: "slate"');
+      expect(config).toContain(
+        'export const database = sqlite("status.sqlite")',
+      );
+      expect(config).not.toContain("heyo-status.database");
+      expect(
+        await Bun.file(join(projectPath, "heyo-status.database.ts")).exists(),
+      ).toBe(false);
       expect(await Bun.file(join(projectPath, ".env.example")).exists()).toBe(
         false,
       );
@@ -406,6 +413,16 @@ describe("create-heyo-status", () => {
       expect(packageJson.scripts.start).toContain("wrangler dev");
       expect(packageJson.scripts.check).toBeUndefined();
       expect(packageJson.scripts["db:seed"]).toBeUndefined();
+      const config = await readFile(
+        join(projectPath, "heyo-status.config.ts"),
+        "utf8",
+      );
+      expect(config).toContain("lazyStatusDatabase");
+      expect(config).toContain("HEYO_STATUS_D1");
+      expect(config).not.toContain("DATABASE_SETUP");
+      expect(
+        await Bun.file(join(projectPath, "heyo-status.database.ts")).exists(),
+      ).toBe(false);
       // The Node adapter cannot build a Worker, so the overlay has to remove it.
       expect(packageJson.dependencies["@astrojs/node"]).toBeUndefined();
       if (template === "astro") {
@@ -465,11 +482,15 @@ describe("create-heyo-status", () => {
 
     for (const { projectPath } of [cloudflare, vercel]) {
       const source = await readFile(
-        join(projectPath, "heyo-status.database.ts"),
+        join(projectPath, "heyo-status.config.ts"),
         "utf8",
       );
       expect(source).toContain("lazyStatusDatabase");
       expect(source).toContain('from "@heyo-sh/heyo-status/db/lazy"');
+      expect(source).not.toContain("{{PROJECT_NAME}}");
+      expect(
+        await Bun.file(join(projectPath, "heyo-status.database.ts")).exists(),
+      ).toBe(false);
     }
   });
 
@@ -540,7 +561,7 @@ describe("create-heyo-status", () => {
     expect(cronRoute).toContain("vercelCronHandler(statusPage");
     expect(cronRoute).not.toContain("process.env");
     const adapter = await Bun.file(
-      join(projectPath, "heyo-status.database.ts"),
+      join(projectPath, "heyo-status.config.ts"),
     ).text();
     expect(adapter).toContain(
       "postgres://postgres:postgres@localhost:5432/status-vercel",

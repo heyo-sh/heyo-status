@@ -1,6 +1,6 @@
 import { heyoStatus } from "@heyo-sh/heyo-status/config";
 
-import { database } from "./heyo-status.database";
+// DATABASE_SETUP
 
 export const statusPage = heyoStatus({
   database,
