@@ -1,5 +1,15 @@
 # @heyo-sh/heyo-status
 
+## 0.3.0
+
+### Minor Changes
+
+- 83fc996: Remove adoption telemetry and implicit environment-variable configuration. Configure the management token and Vercel cron secret explicitly in `heyo-status.config.ts`; the CLI uses `--config` and `--port` or their defaults. Generated starters configure SQLite and PostgreSQL directly in `heyo-status.database.ts` instead of reading environment variables.
+
+### Patch Changes
+
+- 4b387f9: Prevent private monitors from opening automatic incidents. Hide previously stored automatic incidents for private monitors from public status snapshots, incident APIs, feeds, badges, metrics and subscriber notifications while preserving direct database access and operational monitor alerts.
+
 ## 0.2.0
 
 ### Minor Changes
