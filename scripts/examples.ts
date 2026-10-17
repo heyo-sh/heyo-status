@@ -573,12 +573,11 @@ async function startDevServer(
     );
   }
 
-  // Astro's Cloudflare adapter reads secrets from Worker bindings instead of
-  // Node's process.env. Give this local harness its own binding without ever
-  // overwriting a user's .dev.vars file.
+  // Cloudflare examples read secrets from Worker bindings, not process.env.
+  // Give each local Worker a binding without overwriting a user's .dev.vars.
   const localVars = join(directory, ".dev.vars");
   let createdVars = false;
-  if (example.name === "astro-cloudflare") {
+  if (example.database === "d1") {
     if (existsSync(localVars)) {
       const contents = await readFile(localVars, "utf8");
       if (

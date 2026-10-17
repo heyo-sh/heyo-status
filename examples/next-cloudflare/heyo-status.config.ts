@@ -8,6 +8,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 export interface Env {
   DB: D1Database;
+  HEYO_STATUS_API_TOKEN?: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export interface Env {
 export function statusPage(env: Env): StatusPage {
   return heyoStatus({
     database: d1(env.DB),
+    adminToken: env.HEYO_STATUS_API_TOKEN,
     title: "Acme Status",
     theme: "fern",
     siteUrl: "https://status.example.com",

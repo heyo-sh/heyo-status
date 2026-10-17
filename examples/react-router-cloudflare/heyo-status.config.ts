@@ -7,6 +7,7 @@ import type { StatusPage } from "@heyo-sh/heyo-status/types";
 
 export interface Env {
   DB: D1Database;
+  HEYO_STATUS_API_TOKEN?: string;
 }
 
 /** Arguments a Worker-hosted React Router route receives from the adapter. */
@@ -18,6 +19,7 @@ export interface CloudflareRouteArgs {
 export function statusPage(env: Env): StatusPage {
   return heyoStatus({
     database: d1(env.DB),
+    adminToken: env.HEYO_STATUS_API_TOKEN,
     title: "Acme Status",
     theme: "onyx",
     siteUrl: "https://status.example.com",
