@@ -29,6 +29,18 @@ export async function reconcileAutomaticIncidents(
 ): Promise<StatusEvent[]> {
   if (!config.incidents.enabled || results.length === 0) return [];
 
+  // Private monitors still produce operational alerts, but their check
+  // messages and names must never create a public incident.
+  const privateNames = new Set(
+    config.monitors
+      .filter((monitor) => monitor.private)
+      .map((monitor) => monitor.name),
+  );
+  const publicResults = results.filter(
+    (result) => !privateNames.has(result.name),
+  );
+  if (publicResults.length === 0) return [];
+
   const events: StatusEvent[] = [];
 
   const [activeIncidents, maintenance] = await Promise.all([
@@ -39,7 +51,7 @@ export async function reconcileAutomaticIncidents(
   // used to read the whole history again for each of them.
   const failures = await countConsecutiveFailuresByMonitor(
     config,
-    results
+    publicResults
       .filter(
         (result) =>
           !result.status &&
@@ -49,7 +61,7 @@ export async function reconcileAutomaticIncidents(
     now,
   );
 
-  for (const result of results) {
+  for (const result of publicResults) {
     if (isCoveredByActiveMaintenance(maintenance, result.name)) continue;
 
     const related = activeIncidents.filter(

@@ -1,3 +1,4 @@
+import { isPublicIncident } from "./incident-visibility";
 import { toStatusEventPayload } from "./notifications";
 import type {
   NotificationChannel,
@@ -60,7 +61,8 @@ export async function dispatchSubscriberNotifications(
   if (
     !config.subscribers.enabled ||
     !subscriberEventTypes.has(event.type) ||
-    !config.subscribers.methods.some((method) => method !== "rss")
+    !config.subscribers.methods.some((method) => method !== "rss") ||
+    (event.incident && !isPublicIncident(config, event.incident))
   ) {
     return;
   }
