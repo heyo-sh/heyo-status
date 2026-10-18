@@ -70,6 +70,56 @@ describe("theme tokens", () => {
   );
 });
 
+/**
+ * The bundled mark is a near-black path, so a dark page inverts it. The first
+ * attempt wrote `filter: invert(light-dark(0, 1))`, which looks like it reads
+ * the colour scheme and does not: `light-dark()` resolves to a colour, never
+ * to the number `invert()` takes, so browsers dropped the declaration and the
+ * logo stayed black on a black canvas in every dark-mode page.
+ */
+describe("the bundled logo in dark mode", () => {
+  const rule = declarationBlock(
+    sharedStylesheet,
+    '[data-slot="status-logo"][src="/heyo.svg"]',
+  );
+
+  test("inverts by a number rather than a colour function", () => {
+    expect(rule).toContain("filter: invert(");
+    expect(rule).not.toContain("light-dark(");
+  });
+
+  test("follows the attribute the theme toggle writes", () => {
+    expect(declarationBlock(sharedStylesheet, '[data-mode="dark"]')).toContain(
+      "--status-logo-invert: 1",
+    );
+    expect(declarationBlock(sharedStylesheet, '[data-mode="light"]')).toContain(
+      "--status-logo-invert: 0",
+    );
+  });
+
+  test("falls back to the operating system in `system` mode", () => {
+    const query = sharedStylesheet.indexOf(
+      "@media (prefers-color-scheme: dark)",
+    );
+    expect(query).toBeGreaterThanOrEqual(0);
+    expect(sharedStylesheet.slice(query)).toContain("--status-logo-invert: 1");
+    // An explicit choice has to outrank the query, and these selectors carry
+    // the same specificity, so only source order can decide it.
+    expect(sharedStylesheet.indexOf('[data-mode="dark"]')).toBeGreaterThan(
+      query,
+    );
+  });
+});
+
+/** The declarations between `<selector> {` and its closing brace. */
+function declarationBlock(stylesheet: string, selector: string): string {
+  const start = stylesheet.indexOf(`${selector} {`);
+  expect(start).toBeGreaterThanOrEqual(0);
+  const open = stylesheet.indexOf("{", start);
+  const close = stylesheet.indexOf("}", open);
+  return stylesheet.slice(open, close);
+}
+
 /** The declarations between `[data-theme="<name>"] {` and its closing brace. */
 function tokenBlock(stylesheet: string, theme: string): string {
   const start = stylesheet.indexOf(`[data-theme="${theme}"]`);

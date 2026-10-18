@@ -90,7 +90,9 @@ SQLite needs a writable local disk. The generated projects include the right
 adapter and migration setup for their selected target. The page `title` remains
 its metadata and notification name; `branding.logo` controls the header image,
 and optional `branding.name` adds text beside it. Starters include a replaceable
-Heyo mark at `/heyo.svg`.
+Heyo mark at `/heyo.svg`, which the stylesheet inverts in dark mode because it
+is a single near-black path. A replacement logo is left alone in both modes, so
+ship one that reads on a light and a dark canvas.
 
 ## Status page and API
 
