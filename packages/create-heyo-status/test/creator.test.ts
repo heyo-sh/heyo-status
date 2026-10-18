@@ -444,6 +444,12 @@ describe("create-heyo-status", () => {
           "utf8",
         );
         expect(binding).toContain('from "cloudflare:workers"');
+        const astroConfig = await readFile(
+          join(projectPath, "astro.config.mjs"),
+          "utf8",
+        );
+        expect(astroConfig).toContain("ssr: { noExternal:");
+        expect(astroConfig).toContain("@heyo-sh/heyo-status/theme/script");
       }
       if (template === "next") {
         const nextConfig = await readFile(

@@ -10,13 +10,23 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { chromium, type Browser } from "playwright-core";
 
 const root = resolve(import.meta.dirname, "..");
 const temporary = await mkdtemp(join(tmpdir(), "heyo-status-scaffold-"));
 const templates = ["next", "astro", "react-router"] as const;
 const port = 8787; // Wrangler's default; projects are tested one at a time.
+let browser: Browser | undefined;
 
 try {
+  // Opt in for a real browser test of HMR/hydration; the default smoke needs
+  // no installed browser. CI opts in after installing Playwright's Chromium.
+  if (process.env.HEYO_STATUS_BROWSER_E2E === "1") {
+    browser = await chromium.launch({
+      executablePath: process.env.HEYO_STATUS_BROWSER_BIN || undefined,
+      headless: true,
+    });
+  }
   const packed = join(temporary, "packed");
   await mkdir(packed);
   const statusVersion = await packageVersion("heyo-status");
@@ -85,13 +95,7 @@ try {
       async (child) => {
         await waitForStatus(child, log);
         await waitForTheme(child, log, "slate");
-        const config = join(projectPath, "heyo-status.config.ts");
-        const original = await readFile(config, "utf8");
-        await writeFile(
-          config,
-          original.replace('theme: "slate"', 'theme: "fern"'),
-        );
-        await waitForTheme(child, log, "fern");
+        await verifyThemeReload(projectPath, template, child, log, browser);
       },
     );
     // Still build and boot the real Worker, not just the framework proxy.
@@ -128,6 +132,7 @@ try {
     );
   }
 } finally {
+  await browser?.close();
   await rm(temporary, { recursive: true, force: true });
 }
 
@@ -206,6 +211,83 @@ async function run(
     throw new Error(
       `${command} ${args.join(" ")} failed in ${cwd}:\n${stdout}${stderr}`,
     );
+  }
+}
+
+async function verifyThemeReload(
+  project: string,
+  template: (typeof templates)[number],
+  child: ChildProcess,
+  log: string,
+  browser?: Browser,
+): Promise<void> {
+  const page = await browser?.newPage();
+  const errors: string[] = [];
+  page?.on("pageerror", (error) => errors.push(error.message));
+  try {
+    const status = page?.locator('main[data-slot="status-page"]');
+    if (page && status) {
+      const host = template === "next" ? "localhost" : "127.0.0.1";
+      await page.emulateMedia({ colorScheme: "light" });
+      const response = await page.goto(`http://${host}:${port}/`, {
+        waitUntil: "networkidle",
+      });
+      if (!response?.ok())
+        throw new Error(`Browser page returned ${response?.status()}`);
+      await status.waitFor();
+    }
+    const initialWidth = await status?.evaluate(
+      (node) => getComputedStyle(node).maxWidth,
+    );
+    const config = join(project, "heyo-status.config.ts");
+    let previous = "slate";
+    for (const theme of browser
+      ? ["fern", "onyx", "dune", "reed", "fern"]
+      : ["fern"]) {
+      const original = await readFile(config, "utf8");
+      const updated = original.replace(
+        `theme: "${previous}"`,
+        `theme: "${theme}"`,
+      );
+      if (original === updated)
+        throw new Error(`Cannot change theme in ${config}`);
+      await writeFile(config, updated);
+      await waitForTheme(child, log, theme);
+      if (page && status) {
+        // No page.reload(): prove the existing browser tab updates on its own.
+        await page.waitForFunction(
+          (name) =>
+            document
+              .querySelector('main[data-slot="status-page"]')
+              ?.getAttribute("data-theme") === name,
+          theme,
+          { timeout: 45_000 },
+        );
+        if (errors.length)
+          throw new Error(
+            `Browser hydration/HMR errors: ${errors.join(" | ")}`,
+          );
+        const width = await status.evaluate(
+          (node) => getComputedStyle(node).maxWidth,
+        );
+        if (theme === "reed" && width === initialWidth)
+          throw new Error(`Theme changed in HTML but not in CSS: ${width}`);
+      }
+      previous = theme;
+    }
+    if (page) {
+      // SSR markup and HMR alone could pass while client hydration is broken.
+      await page.getByRole("button", { name: "Switch to dark mode" }).click();
+      await page.waitForFunction(
+        () => document.documentElement.dataset.mode === "dark",
+      );
+      if (errors.length)
+        throw new Error(`Browser errors: ${errors.join(" | ")}`);
+    }
+  } catch (error) {
+    throw new Error(`${String(error)}\n${await readFile(log, "utf8")}`);
+  } finally {
+    await page?.close();
   }
 }
 

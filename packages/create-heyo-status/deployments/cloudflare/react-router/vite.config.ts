@@ -5,6 +5,23 @@ import { defineConfig } from "vite";
 export default defineConfig(({ command }) => ({
   plugins: [cloudflareDevProxy(), reactRouter()],
   resolve: { dedupe: ["react", "react-dom"] },
+  // Prebundle the UI before the first browser request. Otherwise Vite discovers
+  // it mid-load and invalidates the React Router client entrypoint, leaving a
+  // fresh tab with a failed dynamic import instead of a hydrated status page.
+  optimizeDeps: {
+    include: [
+      "@heyo-sh/heyo-status/ui",
+      "@heyo-sh/heyo-status/theme/script",
+      "@heyo-sh/heyo-ui",
+      "@base-ui/react",
+      "@floating-ui/utils/dom",
+      "@floating-ui/utils",
+      "@floating-ui/react-dom",
+      "use-sync-external-store/shim",
+      "use-sync-external-store/shim/with-selector",
+      "reselect",
+    ],
+  },
   ssr: {
     /*
      * The status page is React components from `@heyo-sh/heyo-status/ui`,

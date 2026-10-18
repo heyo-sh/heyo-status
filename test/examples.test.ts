@@ -144,6 +144,9 @@ describe("deployment examples", () => {
     for (const file of files) {
       const source = await readFile(join(root, file), "utf8");
       expect(source).toContain('dedupe: ["react", "react-dom"]');
+      expect(source).toContain('"@heyo-sh/heyo-status/ui"');
+      expect(source).toContain('"@heyo-sh/heyo-status/theme/script"');
+      expect(source).toContain('"@floating-ui/react-dom"');
       expect(source).toContain('command === "build" ? true');
       expect(source).toContain("/^@base-ui\\//");
       expect(source).toContain("/^@heyo-sh\\//");
@@ -156,6 +159,11 @@ describe("deployment examples", () => {
     ) as { scripts: Record<string, string> };
     expect(scripts.dev).toBe("astro dev");
     expect(scripts["dev:worker"]).toBe("astro build && wrangler dev");
+    const astroConfig = await readFile(
+      join(root, "astro-cloudflare/astro.config.mjs"),
+      "utf8",
+    );
+    expect(astroConfig).toContain("ssr: { noExternal:");
     const harness = await readFile(
       join(root, "../scripts/examples.ts"),
       "utf8",
