@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run db:migrate && bun run start",
+    "dev": "bun run db:migrate && astro dev",
     "start": "astro build && wrangler dev",
     "check": null,
     "db:seed": null,

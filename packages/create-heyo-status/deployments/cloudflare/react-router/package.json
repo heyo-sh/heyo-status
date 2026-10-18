@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run db:migrate && bun run start",
+    "dev": "bun run db:migrate && react-router dev",
     "start": "react-router build && wrangler dev",
     "check": null,
     "db:seed": null,
@@ -11,6 +11,7 @@
     "@react-router/cloudflare": "^7.0.0"
   },
   "devDependencies": {
+    "@types/react-dom": "^19.0.0",
     "wrangler": "^4.125.0"
   }
 }

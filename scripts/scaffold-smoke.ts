@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /** Test the npm tarballs and Cloudflare projects created from them, not only
- * the six workspace examples. Every generated `bun dev` must migrate local D1,
- * build the Worker and serve the page without a manual setup step.
+ * the workspace examples. Every generated `bun dev` must migrate local D1,
+ * serve the page and pick up a theme edit without restarting.
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { closeSync, openSync } from "node:fs";
@@ -70,27 +70,37 @@ try {
     await run("bun", ["install"], projectPath);
     await run("bun", ["run", "build"], projectPath);
 
-    // Never mistake an unrelated Worker already listening on the test port
-    // for a working generated project.
-    await assertPortAvailable();
-    // The published 'dev' script must start a real Worker with a migrated D1.
     const log = join(temporary, `${template}.log`);
-    const descriptor = openSync(log, "w");
-    const child = spawn("bun", ["run", "dev"], {
-      cwd: projectPath,
-      detached: true,
-      stdio: ["ignore", descriptor, descriptor],
-    });
-    try {
+    await serve(
+      projectPath,
+      [
+        "run",
+        "dev",
+        "--port",
+        String(port),
+        ...(template === "astro" ? ["--ignore-lock"] : []),
+        ...(template !== "next" ? ["--host", "127.0.0.1"] : []),
+      ],
+      log,
+      async (child) => {
+        await waitForStatus(child, log);
+        await waitForTheme(child, log, "slate");
+        const config = join(projectPath, "heyo-status.config.ts");
+        const original = await readFile(config, "utf8");
+        await writeFile(
+          config,
+          original.replace('theme: "slate"', 'theme: "fern"'),
+        );
+        await waitForTheme(child, log, "fern");
+      },
+    );
+    // Still build and boot the real Worker, not just the framework proxy.
+    await serve(projectPath, ["run", "start"], log, async (child) => {
       await waitForStatus(child, log);
+      await waitForTheme(child, log, "fern");
       await run("bunx", ["wrangler", "deploy", "--dry-run"], projectPath);
-      console.log(
-        `  ✓ ${template}: installed tarball, build, migrations, Worker, API, dry-run`,
-      );
-    } finally {
-      await stop(child);
-      closeSync(descriptor);
-    }
+    });
+    console.log(`  ✓ ${template}: tarball, D1, theme reload, Worker, dry-run`);
   }
 
   // Installing packed Vercel starters catches scoped dependency overrides
@@ -197,6 +207,66 @@ async function run(
       `${command} ${args.join(" ")} failed in ${cwd}:\n${stdout}${stderr}`,
     );
   }
+}
+
+async function serve(
+  project: string,
+  args: string[],
+  log: string,
+  verify: (child: ChildProcess) => Promise<void>,
+): Promise<void> {
+  await assertPortAvailable();
+  const descriptor = openSync(log, "w");
+  const child = spawn("bun", args, {
+    cwd: project,
+    detached: true,
+    stdio: ["ignore", descriptor, descriptor],
+  });
+  try {
+    await verify(child);
+  } finally {
+    await stop(child);
+    closeSync(descriptor);
+    // Wrangler/Next can release their socket shortly after the parent exits.
+    for (let attempt = 0; attempt < 20; attempt++) {
+      try {
+        await assertPortAvailable();
+        break;
+      } catch (error) {
+        if (attempt === 19) throw error;
+        await Bun.sleep(250);
+      }
+    }
+  }
+}
+
+async function waitForTheme(
+  child: ChildProcess,
+  log: string,
+  theme: string,
+): Promise<void> {
+  const deadline = Date.now() + 45_000;
+  while (Date.now() < deadline && child.exitCode === null) {
+    try {
+      const page = await fetch(`http://127.0.0.1:${port}/`, {
+        signal: AbortSignal.timeout(5_000),
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (
+        page.ok &&
+        (await page.text()).includes(
+          `data-slot="status-page" data-theme="${theme}"`,
+        )
+      )
+        return;
+    } catch {
+      /* dev server may be recompiling */
+    }
+    await Bun.sleep(500);
+  }
+  throw new Error(
+    `Theme ${theme} did not appear without a restart:\n${await readFile(log, "utf8")}`,
+  );
 }
 
 async function waitForStatus(child: ChildProcess, log: string): Promise<void> {

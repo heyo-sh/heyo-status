@@ -49,9 +49,9 @@ collides and no run reads another's rows:
 - **Cloudflare examples** apply the bundled migrations to the local D1 state
   with `wrangler d1 migrations apply heyo-status --local`. Next and React
   Router reach that state through their framework dev proxies. Astro/Cloudflare
-  builds first and boots its actual Worker with `wrangler dev`; as in the
-  generated starter, restart `dev` after changing application code (no hot
-  reload). This avoids an upstream Astro/Cloudflare dev-runner crash on Linux.
+  runs `astro dev` on macOS and uses a built Worker fallback on Linux, where
+  the Astro/Cloudflare dev runner crashes with a split Vite 7/8 tree. Generated
+  starters use the framework dev server, so changing `theme` refreshes the page.
 
 The Vercel configs explicitly read the harness-provided `HEYO_STATUS_API_TOKEN`
 and `CRON_SECRET` and pass them as `adminToken` and `cronSecret`. Cloudflare
