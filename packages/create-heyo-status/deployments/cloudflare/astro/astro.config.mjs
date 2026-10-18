@@ -15,6 +15,16 @@ export default defineConfig({
   // discover heyo-ui mid-request and briefly load two React instances.
   vite: {
     resolve: { dedupe: ["react", "react-dom"] },
-    optimizeDeps: { include: ["@heyo-sh/heyo-ui", "@heyo-sh/heyo-status/ui"] },
+    optimizeDeps: {
+      include: [
+        "@heyo-sh/heyo-ui",
+        "@heyo-sh/heyo-status/ui",
+        "@heyo-sh/heyo-status/theme/script",
+      ],
+    },
+    // Externalized components resolve React through Node while Astro's SSR
+    // renderer goes through Vite; on a fresh install these can be two hook
+    // dispatchers. Keep component packages on Vite's deduped module graph.
+    ssr: { noExternal: [/^@heyo-sh\//, /^@base-ui\//] },
   },
 });

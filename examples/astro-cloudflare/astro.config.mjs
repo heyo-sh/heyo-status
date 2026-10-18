@@ -15,6 +15,13 @@ export default defineConfig({
   // discover heyo-ui mid-request and briefly load two React instances.
   vite: {
     resolve: { dedupe: ["react", "react-dom"] },
-    optimizeDeps: { include: ["@heyo-sh/heyo-ui", "@heyo-sh/heyo-status/ui"] },
+    optimizeDeps: {
+      include: [
+        "@heyo-sh/heyo-ui",
+        "@heyo-sh/heyo-status/ui",
+        "@heyo-sh/heyo-status/theme/script",
+      ],
+    },
+    ssr: { noExternal: [/^@heyo-sh\//, /^@base-ui\//] },
   },
 });

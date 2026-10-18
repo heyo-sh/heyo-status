@@ -87,7 +87,11 @@ jobs:
           done
       - name: Exercise each framework with Postgres or local D1
         run: bun run example smoke --no-build
+      - name: Install Chromium for generated starter HMR smoke
+        run: bunx playwright-core install --with-deps chromium
       - name: Build and boot projects from the actual npm tarballs
+        env:
+          HEYO_STATUS_BROWSER_E2E: "1"
         run: bun run scaffold:smoke
       - name: Boot the bundled Cloudflare Workers (not just the framework dev proxies)
         run: |

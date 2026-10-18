@@ -409,8 +409,60 @@ describe("create-heyo-status", () => {
       expect(packageJson.overrides["source-map-js"]).toBe("1.2.2");
       expect(packageJson.scripts.dev).not.toContain("heyo-status");
       expect(packageJson.scripts.dev).toContain("db:migrate");
-      expect(packageJson.scripts.dev).toContain("bun run start");
+      expect(packageJson.scripts.dev).toBe(
+        `bun run db:migrate && ${template === "react-router" ? "react-router" : template} dev`,
+      );
       expect(packageJson.scripts.start).toContain("wrangler dev");
+      if (template === "react-router") {
+        for (const route of [
+          "src/root.tsx",
+          "src/routes/_index.tsx",
+          "src/routes/api.heyo-status.$.ts",
+        ]) {
+          const source = await readFile(join(projectPath, route), "utf8");
+          expect(source).toContain("context.cloudflare.env.DB");
+        }
+        const vite = await readFile(
+          join(projectPath, "vite.config.ts"),
+          "utf8",
+        );
+        expect(vite).toContain("cloudflareDevProxy()");
+        const entry = await readFile(
+          join(projectPath, "src/entry.server.tsx"),
+          "utf8",
+        );
+        expect(entry).toContain("renderToReadableStream");
+      }
+      if (template === "astro") {
+        const page = await readFile(
+          join(projectPath, "src/pages/index.astro"),
+          "utf8",
+        );
+        expect(page).toContain("requestStatusPage()");
+        const binding = await readFile(
+          join(projectPath, "cloudflare-status-page.ts"),
+          "utf8",
+        );
+        expect(binding).toContain('from "cloudflare:workers"');
+        const astroConfig = await readFile(
+          join(projectPath, "astro.config.mjs"),
+          "utf8",
+        );
+        expect(astroConfig).toContain("ssr: { noExternal:");
+        expect(astroConfig).toContain("@heyo-sh/heyo-status/theme/script");
+      }
+      if (template === "next") {
+        const nextConfig = await readFile(
+          join(projectPath, "next.config.mjs"),
+          "utf8",
+        );
+        expect(nextConfig).toContain("initOpenNextCloudflareForDev()");
+        const binding = await readFile(
+          join(projectPath, "cloudflare-status-page.ts"),
+          "utf8",
+        );
+        expect(binding).toContain("getCloudflareContext({ async: true })");
+      }
       expect(packageJson.scripts.check).toBeUndefined();
       expect(packageJson.scripts["db:seed"]).toBeUndefined();
       const config = await readFile(

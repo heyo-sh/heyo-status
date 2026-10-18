@@ -34,14 +34,16 @@ Each target is paired with a supported database. Configure the database,
 production credentials out of version control.
 Apply remote migrations before publishing:
 
-| Deployment   | Database             | Local workflow                                               |
-| ------------ | -------------------- | ------------------------------------------------------------ |
-| `cloudflare` | D1                   | `bun run dev` migrates local D1 and builds/serves the Worker |
-| `vercel`     | PostgreSQL           | `bun run dev` after configuring PostgreSQL                   |
-| `later`      | SQLite or PostgreSQL | `bun run dev` after configuring the database                 |
+| Deployment   | Database             | Local workflow                                                      |
+| ------------ | -------------------- | ------------------------------------------------------------------- |
+| `cloudflare` | D1                   | `bun run dev` migrates local D1 and starts the framework dev server |
+| `vercel`     | PostgreSQL           | `bun run dev` after configuring PostgreSQL                          |
+| `later`      | SQLite or PostgreSQL | `bun run dev` after configuring the database                        |
 
-Cloudflare's `bun run dev` serves the actual bundled Worker, not a framework
-hot-reload proxy. It rebuilds after each restart; re-run it after code changes.
+Cloudflare's `bun run dev` starts the framework dev server with local D1 bindings.
+Editing `theme` in `heyo-status.config.ts` refreshes the page without restarting
+it. Use `bun run start` to build and serve the actual Worker with Wrangler;
+that command requires a restart after changing code.
 Before deploying to Cloudflare run `wrangler d1 migrations apply <name> --remote`.
 Vercel itself sends the platform `CRON_SECRET` as a bearer token to cron routes.
 Set it in Vercel settings and configure the matching `cronSecret` in the status

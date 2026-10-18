@@ -59,10 +59,12 @@ cd my-status-page
 bun dev
 ```
 
-Cloudflare starters build a local Worker and migrate local D1 when you run
-`bun dev`; they do not offer framework hot reload. Re-run the command after
-changing application code. Replace the example.com monitors and configure
-`heyo-status.config.ts` before publishing real status information. For a deployment target, see the
+Cloudflare starters migrate local D1 and start a framework development server
+when you run `bun dev`. Changes to `theme` in `heyo-status.config.ts` refresh
+the page without restarting the server. To test the production Worker locally,
+run `bun run start` (which builds once, so restart it after changing code).
+Replace the example.com monitors and configure `heyo-status.config.ts` before
+publishing real status information. For a deployment target, see the
 [deployment examples](./examples/README.md) and the
 [deployment guide](https://github.com/heyo-sh/heyo-docs/blob/main/docs/heyo-status/README.md).
 

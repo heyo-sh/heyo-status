@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 /** Test the npm tarballs and Cloudflare projects created from them, not only
- * the six workspace examples. Every generated `bun dev` must migrate local D1,
- * build the Worker and serve the page without a manual setup step.
+ * the workspace examples. Every generated `bun dev` must migrate local D1,
+ * serve the page and pick up a theme edit without restarting.
  */
 import { spawn, type ChildProcess } from "node:child_process";
 import { closeSync, openSync } from "node:fs";
@@ -10,13 +10,23 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { chromium, type Browser } from "playwright-core";
 
 const root = resolve(import.meta.dirname, "..");
 const temporary = await mkdtemp(join(tmpdir(), "heyo-status-scaffold-"));
 const templates = ["next", "astro", "react-router"] as const;
 const port = 8787; // Wrangler's default; projects are tested one at a time.
+let browser: Browser | undefined;
 
 try {
+  // Opt in for a real browser test of HMR/hydration; the default smoke needs
+  // no installed browser. CI opts in after installing Playwright's Chromium.
+  if (process.env.HEYO_STATUS_BROWSER_E2E === "1") {
+    browser = await chromium.launch({
+      executablePath: process.env.HEYO_STATUS_BROWSER_BIN || undefined,
+      headless: true,
+    });
+  }
   const packed = join(temporary, "packed");
   await mkdir(packed);
   const statusVersion = await packageVersion("heyo-status");
@@ -70,27 +80,31 @@ try {
     await run("bun", ["install"], projectPath);
     await run("bun", ["run", "build"], projectPath);
 
-    // Never mistake an unrelated Worker already listening on the test port
-    // for a working generated project.
-    await assertPortAvailable();
-    // The published 'dev' script must start a real Worker with a migrated D1.
     const log = join(temporary, `${template}.log`);
-    const descriptor = openSync(log, "w");
-    const child = spawn("bun", ["run", "dev"], {
-      cwd: projectPath,
-      detached: true,
-      stdio: ["ignore", descriptor, descriptor],
-    });
-    try {
+    await serve(
+      projectPath,
+      [
+        "run",
+        "dev",
+        "--port",
+        String(port),
+        ...(template === "astro" ? ["--ignore-lock"] : []),
+        ...(template !== "next" ? ["--host", "127.0.0.1"] : []),
+      ],
+      log,
+      async (child) => {
+        await waitForStatus(child, log);
+        await waitForTheme(child, log, "slate");
+        await verifyThemeReload(projectPath, template, child, log, browser);
+      },
+    );
+    // Still build and boot the real Worker, not just the framework proxy.
+    await serve(projectPath, ["run", "start"], log, async (child) => {
       await waitForStatus(child, log);
+      await waitForTheme(child, log, "fern");
       await run("bunx", ["wrangler", "deploy", "--dry-run"], projectPath);
-      console.log(
-        `  ✓ ${template}: installed tarball, build, migrations, Worker, API, dry-run`,
-      );
-    } finally {
-      await stop(child);
-      closeSync(descriptor);
-    }
+    });
+    console.log(`  ✓ ${template}: tarball, D1, theme reload, Worker, dry-run`);
   }
 
   // Installing packed Vercel starters catches scoped dependency overrides
@@ -118,6 +132,7 @@ try {
     );
   }
 } finally {
+  await browser?.close();
   await rm(temporary, { recursive: true, force: true });
 }
 
@@ -197,6 +212,143 @@ async function run(
       `${command} ${args.join(" ")} failed in ${cwd}:\n${stdout}${stderr}`,
     );
   }
+}
+
+async function verifyThemeReload(
+  project: string,
+  template: (typeof templates)[number],
+  child: ChildProcess,
+  log: string,
+  browser?: Browser,
+): Promise<void> {
+  const page = await browser?.newPage();
+  const errors: string[] = [];
+  page?.on("pageerror", (error) => errors.push(error.message));
+  try {
+    const status = page?.locator('main[data-slot="status-page"]');
+    if (page && status) {
+      const host = template === "next" ? "localhost" : "127.0.0.1";
+      await page.emulateMedia({ colorScheme: "light" });
+      const response = await page.goto(`http://${host}:${port}/`, {
+        waitUntil: "networkidle",
+      });
+      if (!response?.ok())
+        throw new Error(`Browser page returned ${response?.status()}`);
+      await status.waitFor();
+    }
+    const initialWidth = await status?.evaluate(
+      (node) => getComputedStyle(node).maxWidth,
+    );
+    const config = join(project, "heyo-status.config.ts");
+    let previous = "slate";
+    for (const theme of browser
+      ? ["fern", "onyx", "dune", "reed", "fern"]
+      : ["fern"]) {
+      const original = await readFile(config, "utf8");
+      const updated = original.replace(
+        `theme: "${previous}"`,
+        `theme: "${theme}"`,
+      );
+      if (original === updated)
+        throw new Error(`Cannot change theme in ${config}`);
+      await writeFile(config, updated);
+      await waitForTheme(child, log, theme);
+      if (page && status) {
+        // No page.reload(): prove the existing browser tab updates on its own.
+        await page.waitForFunction(
+          (name) =>
+            document
+              .querySelector('main[data-slot="status-page"]')
+              ?.getAttribute("data-theme") === name,
+          theme,
+          { timeout: 45_000 },
+        );
+        if (errors.length)
+          throw new Error(
+            `Browser hydration/HMR errors: ${errors.join(" | ")}`,
+          );
+        const width = await status.evaluate(
+          (node) => getComputedStyle(node).maxWidth,
+        );
+        if (theme === "reed" && width === initialWidth)
+          throw new Error(`Theme changed in HTML but not in CSS: ${width}`);
+      }
+      previous = theme;
+    }
+    if (page) {
+      // SSR markup and HMR alone could pass while client hydration is broken.
+      await page.getByRole("button", { name: "Switch to dark mode" }).click();
+      await page.waitForFunction(
+        () => document.documentElement.dataset.mode === "dark",
+      );
+      if (errors.length)
+        throw new Error(`Browser errors: ${errors.join(" | ")}`);
+    }
+  } catch (error) {
+    throw new Error(`${String(error)}\n${await readFile(log, "utf8")}`);
+  } finally {
+    await page?.close();
+  }
+}
+
+async function serve(
+  project: string,
+  args: string[],
+  log: string,
+  verify: (child: ChildProcess) => Promise<void>,
+): Promise<void> {
+  await assertPortAvailable();
+  const descriptor = openSync(log, "w");
+  const child = spawn("bun", args, {
+    cwd: project,
+    detached: true,
+    stdio: ["ignore", descriptor, descriptor],
+  });
+  try {
+    await verify(child);
+  } finally {
+    await stop(child);
+    closeSync(descriptor);
+    // Wrangler/Next can release their socket shortly after the parent exits.
+    for (let attempt = 0; attempt < 20; attempt++) {
+      try {
+        await assertPortAvailable();
+        break;
+      } catch (error) {
+        if (attempt === 19) throw error;
+        await Bun.sleep(250);
+      }
+    }
+  }
+}
+
+async function waitForTheme(
+  child: ChildProcess,
+  log: string,
+  theme: string,
+): Promise<void> {
+  const deadline = Date.now() + 45_000;
+  while (Date.now() < deadline && child.exitCode === null) {
+    try {
+      const page = await fetch(`http://127.0.0.1:${port}/`, {
+        signal: AbortSignal.timeout(5_000),
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (
+        page.ok &&
+        (await page.text()).includes(
+          `data-slot="status-page" data-theme="${theme}"`,
+        )
+      )
+        return;
+    } catch {
+      /* dev server may be recompiling */
+    }
+    await Bun.sleep(500);
+  }
+  throw new Error(
+    `Theme ${theme} did not appear without a restart:\n${await readFile(log, "utf8")}`,
+  );
 }
 
 async function waitForStatus(child: ChildProcess, log: string): Promise<void> {
