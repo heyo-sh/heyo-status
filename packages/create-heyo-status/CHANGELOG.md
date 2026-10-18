@@ -1,5 +1,11 @@
 # @heyo-sh/create-heyo-status
 
+## 0.3.2
+
+### Patch Changes
+
+- cd86ef5: Run Cloudflare starters with framework development servers and local D1 bindings so changes to `theme` in `heyo-status.config.ts` reload without restarting `bun run dev`. Keep the built Worker available via `bun run start`.
+
 ## 0.3.1
 
 ### Patch Changes
