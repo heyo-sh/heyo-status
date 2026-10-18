@@ -112,10 +112,46 @@
   --status-page-max-width: 40rem;
 }
 
-/* The bundled Heyo mark is dark; invert only that asset in dark mode.
- * Custom logos keep their own colours in both modes. */
+/*
+ * The bundled Heyo mark is one near-black path, so a dark page has to invert
+ * it or the logo disappears into the canvas.
+ *
+ * It did disappear. `light-dark()` resolves to a *colour*, so
+ * `invert(light-dark(0, 1))` is not a valid filter, and a browser drops the
+ * whole declaration rather than half of it — the mark stayed black in both
+ * modes and nothing in the page said why.
+ *
+ * The amount is a number, so it comes from a number: `--status-logo-invert`,
+ * driven by the same switch every token already follows. `[data-mode]` is
+ * what the bootstrap script and the theme toggle write, and the OS query
+ * covers "system", where there is no attribute to read. Custom logos keep
+ * their own colours in both modes.
+ */
+:root {
+  --status-logo-invert: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --status-logo-invert: 1;
+  }
+}
+
+/*
+ * After the media query on purpose: both selectors match the same element
+ * with the same specificity, so source order is what makes an explicit
+ * choice in the page outrank the operating system's.
+ */
+[data-mode="light"] {
+  --status-logo-invert: 0;
+}
+
+[data-mode="dark"] {
+  --status-logo-invert: 1;
+}
+
 [data-slot="status-logo"][src="/heyo.svg"] {
-  filter: invert(light-dark(0, 1));
+  filter: invert(var(--status-logo-invert, 0));
 }
 
 @layer base {
