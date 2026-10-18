@@ -602,13 +602,17 @@ async function startDevServer(
   }
 
   // Astro/Cloudflare's Vite dev runner crashes with a split Vite 7/8 tree on
-  // Linux. Its own dev script builds first and boots the real local Worker.
-  const workerAstro = example.name === "astro-cloudflare";
+  // Linux, so there the example's `dev:worker` script builds first and boots
+  // the real local Worker. Everywhere else it runs `astro dev` like the other
+  // five, because a built bundle reads heyo-status.config.ts once and a
+  // playground where editing `theme` does nothing until a restart teaches the
+  // wrong thing about the configuration it exists to demonstrate.
+  const workerAstro =
+    example.name === "astro-cloudflare" && process.platform === "linux";
   const child = spawn(
     workerAstro ? "bun" : binaryPath(directory, example.bin),
     [
-      ...(workerAstro ? ["run"] : []),
-      "dev",
+      ...(workerAstro ? ["run", "dev:worker"] : ["dev"]),
       "--port",
       String(example.port),
       // Astro 7 auto-backgrounds framework dev servers inside agent

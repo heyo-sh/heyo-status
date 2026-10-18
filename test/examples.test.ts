@@ -136,6 +136,34 @@ describe("deployment examples", () => {
     },
   );
 
+  test("React Router Cloudflare keeps UI dependencies on Vite's deduped React in dev", async () => {
+    const files = [
+      "react-router-cloudflare/vite.config.ts",
+      "../packages/create-heyo-status/deployments/cloudflare/react-router/vite.config.ts",
+    ];
+    for (const file of files) {
+      const source = await readFile(join(root, file), "utf8");
+      expect(source).toContain('dedupe: ["react", "react-dom"]');
+      expect(source).toContain('command === "build" ? true');
+      expect(source).toContain("/^@base-ui\\//");
+      expect(source).toContain("/^@heyo-sh\\//");
+    }
+  });
+
+  test("Astro Cloudflare uses a watching dev server outside the Linux Worker fallback", async () => {
+    const { scripts } = JSON.parse(
+      await readFile(join(root, "astro-cloudflare/package.json"), "utf8"),
+    ) as { scripts: Record<string, string> };
+    expect(scripts.dev).toBe("astro dev");
+    expect(scripts["dev:worker"]).toBe("astro build && wrangler dev");
+    const harness = await readFile(
+      join(root, "../scripts/examples.ts"),
+      "utf8",
+    );
+    expect(harness).toContain('process.platform === "linux"');
+    expect(harness).toContain('["run", "dev:worker"]');
+  });
+
   test("provides .dev.vars to every D1 example in the smoke harness", async () => {
     const source = await readFile(join(root, "../scripts/examples.ts"), "utf8");
     expect(source).toContain('if (example.database === "d1")');

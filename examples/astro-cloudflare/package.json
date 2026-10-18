@@ -2,7 +2,8 @@
   "name": "@heyo-sh/example-astro-cloudflare",
   "private": true,
   "scripts": {
-    "dev": "astro build && wrangler dev",
+    "dev": "astro dev",
+    "dev:worker": "astro build && wrangler dev",
     "build": "astro build",
     "deploy": "astro build && wrangler deploy"
   },
