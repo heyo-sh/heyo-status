@@ -84,6 +84,31 @@ try {
       install: false,
       heyoStatusVersion: `file:${statusArchive}`,
     });
+    // Allow the smoke test to avoid a developer's existing Vite server without
+    // changing the default port in the published starter.
+    if (
+      template === "react-router" &&
+      process.env.HEYO_STATUS_SCAFFOLD_RR_PORT
+    ) {
+      const alternatePort = Number(process.env.HEYO_STATUS_SCAFFOLD_RR_PORT);
+      if (
+        !Number.isInteger(alternatePort) ||
+        alternatePort < 1 ||
+        alternatePort > 65535
+      ) {
+        throw new Error("HEYO_STATUS_SCAFFOLD_RR_PORT must be a valid port");
+      }
+      port = alternatePort;
+      const packagePath = join(projectPath, "package.json");
+      const manifest = JSON.parse(await readFile(packagePath, "utf8")) as {
+        scripts: { dev: string };
+      };
+      manifest.scripts.dev = manifest.scripts.dev.replaceAll(
+        "5173",
+        String(port),
+      );
+      await writeFile(packagePath, JSON.stringify(manifest, null, 2));
+    }
     console.log(`\n▸ published ${template}/Cloudflare`);
     await assertSingleConfig(projectPath, "HEYO_STATUS_D1");
     await run("bun", ["install"], projectPath);
@@ -385,8 +410,23 @@ async function waitForStatus(child: ChildProcess, log: string): Promise<void> {
           });
           if (!page.ok)
             throw new Error(`Worker SSR page answered ${page.status}`);
-          if (!(await page.text()).includes('data-slot="status-page"')) {
+          const html = await page.text();
+          if (!html.includes('data-slot="status-page"')) {
             throw new Error("Worker SSR page is missing the status-page slot");
+          }
+          const snapshot = body as {
+            activeIncidents: unknown[];
+            scheduledMaintenances: unknown[];
+          };
+          if (
+            (snapshot.activeIncidents.length === 0 &&
+              !html.includes("No active incidents.")) ||
+            (snapshot.scheduledMaintenances.length === 0 &&
+              !html.includes("No upcoming maintenance."))
+          ) {
+            throw new Error(
+              "Worker SSR page is missing empty incident or maintenance sections",
+            );
           }
           const logo = await fetch(`http://127.0.0.1:${port}/heyo.svg`, {
             signal: AbortSignal.timeout(5_000),

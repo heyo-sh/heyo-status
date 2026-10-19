@@ -36,6 +36,10 @@ export interface StatusPageProps {
   mode?: StatusMode;
   colors?: StatusColors;
   subscribersEnabled?: boolean;
+  /** Show the incidents section, including its empty state. */
+  incidentsEnabled?: boolean;
+  /** Show the maintenance section, including its empty state. */
+  maintenanceEnabled?: boolean;
   subscriberMethods?: readonly SubscriberMethod[];
   subscribeHref?: string;
   /** Defaults to `basePath`/subscribers when the built-in dialog is used. */
@@ -69,6 +73,8 @@ export function StatusPage({
   mode = "system",
   colors,
   subscribersEnabled = false,
+  incidentsEnabled = true,
+  maintenanceEnabled = true,
   subscriberMethods,
   subscribeHref,
   subscriberApiUrl,
@@ -104,6 +110,8 @@ export function StatusPage({
           branding={branding}
           className={className}
           groups={groups}
+          incidentsEnabled={incidentsEnabled}
+          maintenanceEnabled={maintenanceEnabled}
           metrics={metrics}
           onSubscribe={handleSubscribe}
           rssHref={rssHref}

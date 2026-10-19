@@ -12,6 +12,8 @@ export async function loader({ context }: CloudflareRouteArgs) {
     colors: page.colors,
     metrics: page.metrics,
     mode: page.mode,
+    incidentsEnabled: page.incidents.enabled,
+    maintenanceEnabled: page.maintenance.enabled,
     snapshot: await page.api.getSnapshot(),
     subscribersEnabled: page.subscribers.enabled,
     subscriberMethods: page.subscribers.methods,
@@ -39,6 +41,8 @@ export default function Index({
       colors={loaderData.colors}
       metrics={loaderData.metrics}
       mode={loaderData.mode}
+      incidentsEnabled={loaderData.incidentsEnabled}
+      maintenanceEnabled={loaderData.maintenanceEnabled}
       snapshot={loaderData.snapshot}
       subscribersEnabled={loaderData.subscribersEnabled}
       subscriberMethods={loaderData.subscriberMethods}

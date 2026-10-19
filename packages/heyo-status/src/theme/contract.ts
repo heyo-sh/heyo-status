@@ -31,6 +31,8 @@ export interface StatusLayoutProps {
   /** Monitors that belong to no group, in snapshot order. */
   ungroupedMonitors: MonitorSnapshot[];
   metrics?: StatusMetricsOptions;
+  incidentsEnabled: boolean;
+  maintenanceEnabled: boolean;
   basePath: string;
   rssHref: string;
   subscribersEnabled: boolean;

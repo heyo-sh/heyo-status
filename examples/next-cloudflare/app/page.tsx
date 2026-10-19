@@ -13,6 +13,8 @@ export default async function Page() {
       colors={page.colors}
       metrics={page.metrics}
       mode={page.mode}
+      incidentsEnabled={page.incidents.enabled}
+      maintenanceEnabled={page.maintenance.enabled}
       snapshot={await page.api.getSnapshot()}
       subscribersEnabled={page.subscribers.enabled}
       subscriberMethods={page.subscribers.methods}

@@ -36,6 +36,8 @@ function FernLayout({
   groups,
   ungroupedMonitors,
   metrics,
+  incidentsEnabled,
+  maintenanceEnabled,
   rssHref,
   subscribersEnabled,
   subscribeHref,
@@ -76,10 +78,12 @@ function FernLayout({
       </section>
 
       <ActiveIncidents
+        enabled={incidentsEnabled}
         incidents={snapshot.activeIncidents}
         now={snapshot.generatedAt}
       />
       <ScheduledMaintenance
+        enabled={maintenanceEnabled}
         maintenance={snapshot.scheduledMaintenances}
         now={snapshot.generatedAt}
       />

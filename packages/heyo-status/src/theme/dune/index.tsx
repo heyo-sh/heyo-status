@@ -37,6 +37,8 @@ function DuneLayout({
   groups,
   ungroupedMonitors,
   metrics,
+  incidentsEnabled,
+  maintenanceEnabled,
   rssHref,
   subscribersEnabled,
   subscribeHref,
@@ -69,10 +71,12 @@ function DuneLayout({
       />
 
       <ActiveIncidents
+        enabled={incidentsEnabled}
         incidents={snapshot.activeIncidents}
         now={snapshot.generatedAt}
       />
       <ScheduledMaintenance
+        enabled={maintenanceEnabled}
         maintenance={snapshot.scheduledMaintenances}
         now={snapshot.generatedAt}
       />

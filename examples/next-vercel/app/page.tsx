@@ -12,6 +12,8 @@ export default async function Page() {
       colors={statusPage.colors}
       metrics={statusPage.metrics}
       mode={statusPage.mode}
+      incidentsEnabled={statusPage.incidents.enabled}
+      maintenanceEnabled={statusPage.maintenance.enabled}
       snapshot={snapshot}
       subscribersEnabled={statusPage.subscribers.enabled}
       subscriberMethods={statusPage.subscribers.methods}
