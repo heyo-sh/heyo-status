@@ -105,6 +105,92 @@ const snapshot: StatusSnapshot = {
 
 describe("status UI", () => {
   test.each(builtInStatusThemeNames)(
+    "%s shows empty incident and maintenance sections when enabled",
+    (theme) => {
+      const html = renderToStaticMarkup(
+        <StatusPage snapshot={snapshot} theme={theme} />,
+      );
+
+      expect(html).toContain("No active incidents.");
+      expect(html).toContain("Upcoming maintenance");
+      expect(html).toContain("No upcoming maintenance.");
+    },
+  );
+
+  test.each(builtInStatusThemeNames)(
+    "%s controls the two empty sections independently",
+    (theme) => {
+      const onlyIncidents = renderToStaticMarkup(
+        <StatusPage
+          maintenanceEnabled={false}
+          snapshot={snapshot}
+          theme={theme}
+        />,
+      );
+      const onlyMaintenance = renderToStaticMarkup(
+        <StatusPage
+          incidentsEnabled={false}
+          snapshot={snapshot}
+          theme={theme}
+        />,
+      );
+
+      expect(onlyIncidents).toContain("No active incidents.");
+      expect(onlyIncidents).not.toContain("No upcoming maintenance.");
+      expect(onlyMaintenance).not.toContain("No active incidents.");
+      expect(onlyMaintenance).toContain("No upcoming maintenance.");
+    },
+  );
+
+  test.each(builtInStatusThemeNames)(
+    "%s hides disabled incident and maintenance sections even with data",
+    (theme) => {
+      const html = renderToStaticMarkup(
+        <StatusPage
+          incidentsEnabled={false}
+          maintenanceEnabled={false}
+          snapshot={{
+            ...snapshot,
+            activeIncidents: [
+              {
+                id: "inc_test",
+                title: "Hidden incident",
+                status: "investigating",
+                severity: "major",
+                affectedMonitors: ["Website"],
+                auto: false,
+                updates: [],
+                createdAt: generatedAt,
+                updatedAt: generatedAt,
+                resolvedAt: null,
+              },
+            ],
+            scheduledMaintenances: [
+              {
+                id: "mnt_test",
+                title: "Hidden maintenance",
+                description: "",
+                affectedMonitors: ["Website"],
+                scheduledStart: generatedAt,
+                scheduledEnd: new Date("2026-01-15T14:00:00.000Z"),
+                status: "in-progress",
+                createdAt: generatedAt,
+              },
+            ],
+          }}
+          theme={theme}
+        />,
+      );
+
+      expect(html).not.toContain("Hidden incident");
+      expect(html).not.toContain("Hidden maintenance");
+      expect(html).not.toContain("No active incidents.");
+      expect(html).not.toContain("No upcoming maintenance.");
+      expect(html).not.toContain("Upcoming maintenance");
+    },
+  );
+
+  test.each(builtInStatusThemeNames)(
     "%s renders a logo-only brand without showing the metadata title",
     (theme) => {
       const html = renderToStaticMarkup(

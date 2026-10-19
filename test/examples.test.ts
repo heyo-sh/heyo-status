@@ -41,6 +41,8 @@ const forwardedProps = [
   "colors",
   "metrics",
   "mode",
+  "incidentsEnabled",
+  "maintenanceEnabled",
   "snapshot",
   "subscribersEnabled",
   "subscriberMethods",

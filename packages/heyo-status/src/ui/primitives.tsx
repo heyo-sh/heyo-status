@@ -364,6 +364,7 @@ export function UptimeBar({ label, uptime, className }: UptimeBarProps) {
 
 export interface ActiveIncidentsProps {
   incidents: Incident[];
+  enabled?: boolean;
   now?: Date | string;
   className?: string;
 }
@@ -371,10 +372,11 @@ export interface ActiveIncidentsProps {
 /** Active incidents are native disclosures, so their timelines work without JS. */
 export function ActiveIncidents({
   incidents,
+  enabled = true,
   now = new Date(),
   className,
 }: ActiveIncidentsProps) {
-  if (incidents.length === 0) return null;
+  if (!enabled) return null;
 
   return (
     <section
@@ -384,11 +386,21 @@ export function ActiveIncidents({
       <SectionHeading id="heyo-active-incidents-heading">
         Active incidents
       </SectionHeading>
-      <div className="flex flex-col gap-3">
-        {incidents.map((incident) => (
-          <IncidentDisclosure incident={incident} key={incident.id} now={now} />
-        ))}
-      </div>
+      {incidents.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {incidents.map((incident) => (
+            <IncidentDisclosure
+              incident={incident}
+              key={incident.id}
+              now={now}
+            />
+          ))}
+        </div>
+      ) : (
+        <Card className="px-4 py-3 text-sm text-heyo-subtle">
+          No active incidents.
+        </Card>
+      )}
     </section>
   );
 }
@@ -478,6 +490,7 @@ export function IncidentTimeline({
 
 export interface ScheduledMaintenanceProps {
   maintenance: Maintenance[];
+  enabled?: boolean;
   now?: Date | string;
   className?: string;
 }
@@ -485,11 +498,12 @@ export interface ScheduledMaintenanceProps {
 /** Upcoming and in-progress maintenance windows with an SSR-safe countdown. */
 export function ScheduledMaintenance({
   maintenance,
+  enabled = true,
   now = new Date(),
   className,
 }: ScheduledMaintenanceProps) {
+  if (!enabled) return null;
   const windows = maintenance.filter((window) => window.status !== "completed");
-  if (windows.length === 0) return null;
 
   return (
     <section
@@ -499,43 +513,51 @@ export function ScheduledMaintenance({
       <SectionHeading id="heyo-scheduled-maintenance-heading">
         Upcoming maintenance
       </SectionHeading>
-      <div className="flex flex-col gap-3">
-        {windows.map((window) => (
-          <article className={cardVariants()} key={window.id}>
-            <CardHeader>
-              <h3 className="m-0 min-w-0 truncate text-sm leading-5 font-medium text-heyo-strong">
-                {window.title}
-              </h3>
-              <Badge
-                dot
-                variant={window.status === "in-progress" ? "info" : "neutral"}
-              >
-                {window.status === "in-progress" ? "In progress" : "Scheduled"}
-              </Badge>
-            </CardHeader>
-            <CardBody className="flex flex-col gap-2">
-              {window.description ? (
-                <p className="m-0 text-sm text-heyo-subtle">
-                  {window.description}
+      {windows.length > 0 ? (
+        <div className="flex flex-col gap-3">
+          {windows.map((window) => (
+            <article className={cardVariants()} key={window.id}>
+              <CardHeader>
+                <h3 className="m-0 min-w-0 truncate text-sm leading-5 font-medium text-heyo-strong">
+                  {window.title}
+                </h3>
+                <Badge
+                  dot
+                  variant={window.status === "in-progress" ? "info" : "neutral"}
+                >
+                  {window.status === "in-progress"
+                    ? "In progress"
+                    : "Scheduled"}
+                </Badge>
+              </CardHeader>
+              <CardBody className="flex flex-col gap-2">
+                {window.description ? (
+                  <p className="m-0 text-sm text-heyo-subtle">
+                    {window.description}
+                  </p>
+                ) : null}
+                <p className="m-0 text-sm tabular-nums text-heyo-default">
+                  <time dateTime={machineTimestamp(window.scheduledStart)}>
+                    {formatTimestamp(window.scheduledStart)}
+                  </time>
+                  <span aria-hidden="true"> – </span>
+                  <time dateTime={machineTimestamp(window.scheduledEnd)}>
+                    {formatTimestamp(window.scheduledEnd)}
+                  </time>
                 </p>
-              ) : null}
-              <p className="m-0 text-sm tabular-nums text-heyo-default">
-                <time dateTime={machineTimestamp(window.scheduledStart)}>
-                  {formatTimestamp(window.scheduledStart)}
-                </time>
-                <span aria-hidden="true"> – </span>
-                <time dateTime={machineTimestamp(window.scheduledEnd)}>
-                  {formatTimestamp(window.scheduledEnd)}
-                </time>
-              </p>
-              <p className="m-0 text-xs text-heyo-subtle">
-                Affected: {formatAffectedMonitors(window.affectedMonitors)} ·{" "}
-                {formatMaintenanceCountdown(window, now)}
-              </p>
-            </CardBody>
-          </article>
-        ))}
-      </div>
+                <p className="m-0 text-xs text-heyo-subtle">
+                  Affected: {formatAffectedMonitors(window.affectedMonitors)} ·{" "}
+                  {formatMaintenanceCountdown(window, now)}
+                </p>
+              </CardBody>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <Card className="px-4 py-3 text-sm text-heyo-subtle">
+          No upcoming maintenance.
+        </Card>
+      )}
     </section>
   );
 }

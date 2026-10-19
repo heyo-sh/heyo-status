@@ -41,6 +41,8 @@ function OnyxLayout({
   groups,
   ungroupedMonitors,
   metrics,
+  incidentsEnabled,
+  maintenanceEnabled,
   rssHref,
   subscribersEnabled,
   subscribeHref,
@@ -102,29 +104,32 @@ function OnyxLayout({
       </section>
 
       <ScheduledMaintenance
+        enabled={maintenanceEnabled}
         maintenance={snapshot.scheduledMaintenances}
         now={snapshot.generatedAt}
       />
 
-      <section
-        aria-labelledby="heyo-incident-history-heading"
-        className="flex flex-col gap-3"
-      >
-        <SectionHeading id="heyo-incident-history-heading">
-          Incident history
-        </SectionHeading>
-        {hasIncidents ? (
-          <div className="flex flex-col gap-6">
-            {snapshot.activeIncidents.map((incident) => (
-              <IncidentEntry incident={incident} key={incident.id} />
-            ))}
-          </div>
-        ) : (
-          <p className="m-0 border-l-2 border-heyo-hairline py-1 pl-4 text-sm text-heyo-subtle">
-            No incidents reported in the last {snapshot.displayDays} days.
-          </p>
-        )}
-      </section>
+      {incidentsEnabled ? (
+        <section
+          aria-labelledby="heyo-incident-history-heading"
+          className="flex flex-col gap-3"
+        >
+          <SectionHeading id="heyo-incident-history-heading">
+            Active incidents
+          </SectionHeading>
+          {hasIncidents ? (
+            <div className="flex flex-col gap-6">
+              {snapshot.activeIncidents.map((incident) => (
+                <IncidentEntry incident={incident} key={incident.id} />
+              ))}
+            </div>
+          ) : (
+            <Card className="px-4 py-3 text-sm text-heyo-subtle">
+              No active incidents.
+            </Card>
+          )}
+        </section>
+      ) : null}
 
       <StatusFooter
         className="mt-auto"

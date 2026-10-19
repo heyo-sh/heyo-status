@@ -799,6 +799,23 @@ const checks: readonly Check[] = [
         html.includes("<title>Acme Status</title>"),
         "the configured title is missing from page metadata",
       );
+      const snapshot = await json(await request(example, "GET", "/status"));
+      if ((snapshot.activeIncidents as unknown[]).length === 0) {
+        assert(
+          html.includes("No active incidents."),
+          "empty incidents section is missing",
+        );
+      }
+      assert(
+        html.includes("Upcoming maintenance"),
+        "maintenance section is missing",
+      );
+      if ((snapshot.scheduledMaintenances as unknown[]).length === 0) {
+        assert(
+          html.includes("No upcoming maintenance."),
+          "empty maintenance section is missing",
+        );
+      }
       assert(html.includes('src="/heyo.svg"'), "the Heyo logo is missing");
       assert(
         html.includes('alt="Acme Status"'),
