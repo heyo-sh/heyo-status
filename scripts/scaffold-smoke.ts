@@ -15,7 +15,14 @@ import { chromium, type Browser } from "playwright-core";
 const root = resolve(import.meta.dirname, "..");
 const temporary = await mkdtemp(join(tmpdir(), "heyo-status-scaffold-"));
 const templates = ["next", "astro", "react-router"] as const;
-const port = 8787; // Wrangler's default; projects are tested one at a time.
+const selected = process.argv[2];
+if (selected && !templates.includes(selected as (typeof templates)[number])) {
+  throw new Error(`Unknown scaffold template: ${selected}`);
+}
+const testedTemplates = templates.filter(
+  (template) => !selected || template === selected,
+);
+let port = 3000; // Framework dev defaults; Wrangler uses 8787.
 let browser: Browser | undefined;
 
 try {
@@ -63,7 +70,9 @@ try {
   const workspace = join(temporary, "projects");
   await mkdir(workspace);
 
-  for (const template of templates) {
+  for (const template of testedTemplates) {
+    port =
+      template === "astro" ? 4321 : template === "react-router" ? 5173 : 3000;
     const { projectPath } = await scaffoldProject({
       cwd: workspace,
       projectName: `audit-${template}`,
@@ -83,34 +92,34 @@ try {
     const log = join(temporary, `${template}.log`);
     await serve(
       projectPath,
-      [
-        "run",
-        "dev",
-        "--port",
-        String(port),
-        ...(template === "astro" ? ["--ignore-lock"] : []),
-        ...(template !== "next" ? ["--host", "127.0.0.1"] : []),
-      ],
+      ["run", "dev", ...(template === "astro" ? ["--ignore-lock"] : [])],
       log,
       async (child) => {
         await waitForStatus(child, log);
+        await waitForInitialCheck(child, log);
+        await assertDevCronGuard();
         await waitForTheme(child, log, "slate");
         await verifyThemeReload(projectPath, template, child, log, browser);
       },
     );
     // Still build and boot the real Worker, not just the framework proxy.
+    port = 8787;
     await serve(projectPath, ["run", "start"], log, async (child) => {
       await waitForStatus(child, log);
+      await assertProductionCronClosed();
       await waitForTheme(child, log, "fern");
       await run("bunx", ["wrangler", "deploy", "--dry-run"], projectPath);
     });
-    console.log(`  ✓ ${template}: tarball, D1, theme reload, Worker, dry-run`);
+    console.log(
+      `  ✓ ${template}: tarball, automatic local checks, D1, theme reload, Worker, dry-run`,
+    );
+    port = 3000;
   }
 
   // Installing packed Vercel starters catches scoped dependency overrides
   // ignored by package managers and database imports that break builds before
   // a PostgreSQL connection exists. Check all three framework templates.
-  for (const template of templates) {
+  for (const template of testedTemplates) {
     const { projectPath: vercelProject } = await scaffoldProject({
       cwd: workspace,
       projectName: `audit-${template}-vercel`,
@@ -393,6 +402,72 @@ async function waitForStatus(child: ChildProcess, log: string): Promise<void> {
   }
   throw new Error(
     `Generated Worker failed to answer:\n${await readFile(log, "utf8")}`,
+  );
+}
+
+async function assertDevCronGuard(): Promise<void> {
+  const response = await fetch(
+    `http://127.0.0.1:${port}/api/heyo-status/dev-cron/cron`,
+    {
+      method: "POST",
+      headers: {
+        "x-heyo-status-dev-cron": "checks",
+        origin: "https://example.com",
+      },
+    },
+  );
+  if (response.status !== 403)
+    throw new Error(`Expected guarded dev cron, got HTTP ${response.status}`);
+}
+
+async function assertProductionCronClosed(): Promise<void> {
+  const response = await fetch(
+    `http://127.0.0.1:${port}/api/heyo-status/dev-cron/cron`,
+    {
+      method: "POST",
+      headers: { "x-heyo-status-dev-cron": "checks" },
+    },
+  );
+  if (response.status !== 404)
+    throw new Error(`Production cron route returned HTTP ${response.status}`);
+}
+
+async function waitForInitialCheck(
+  child: ChildProcess,
+  log: string,
+): Promise<void> {
+  const deadline = Date.now() + 90_000;
+  while (Date.now() < deadline && child.exitCode === null) {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:${port}/api/heyo-status/status`,
+        {
+          signal: AbortSignal.timeout(5_000),
+          headers: { "Cache-Control": "no-cache" },
+        },
+      );
+      if (response.ok) {
+        const snapshot = (await response.json()) as {
+          monitors: Array<{ latestCheckedAt: string | null }>;
+        };
+        if (snapshot.monitors.some((monitor) => monitor.latestCheckedAt)) {
+          const page = await fetch(`http://127.0.0.1:${port}/`);
+          if (
+            !page.ok ||
+            !(await page.text()).includes('data-slot="status-page"')
+          ) {
+            throw new Error("Page did not render after the initial check");
+          }
+          return;
+        }
+      }
+    } catch {
+      // The initial check may still be running.
+    }
+    await Bun.sleep(500);
+  }
+  throw new Error(
+    `No automatic check appeared in local D1:\n${await readFile(log, "utf8")}`,
   );
 }
 

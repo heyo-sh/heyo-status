@@ -9,6 +9,43 @@ import type { StatusPage } from "../types";
 export { d1, D1StatusDatabase };
 export type { D1Database, D1StatusDatabaseOptions };
 
+/**
+ * Local-only cron entry point for generated Cloudflare framework dev servers.
+ * The timer lives in the CLI, but checks execute on the framework server where
+ * the request's D1 binding exists. Never expose this in a production build.
+ */
+export async function runLocalDevCron(
+  statusPage: StatusPage,
+  request: Request,
+  enabled: boolean,
+): Promise<Response> {
+  if (!enabled) return new Response(null, { status: 404 });
+  const url = new URL(request.url);
+  if (
+    request.method !== "POST" ||
+    !["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) ||
+    request.headers.has("origin")
+  ) {
+    return new Response(null, { status: 403 });
+  }
+  const task = request.headers.get("x-heyo-status-dev-cron");
+  switch (task) {
+    case "checks": {
+      const results = await statusPage.cron.runChecks();
+      return Response.json({ ok: true, results: results.length });
+    }
+    case "summarize": {
+      const result = await statusPage.cron.summarize();
+      return Response.json({ ok: true, result });
+    }
+    case "cleanup":
+      await statusPage.cron.cleanup();
+      return Response.json({ ok: true });
+    default:
+      return new Response(null, { status: 400 });
+  }
+}
+
 /** Minimal Cloudflare Workers scheduled event shape. */
 export interface CloudflareScheduledEvent {
   cron: string;

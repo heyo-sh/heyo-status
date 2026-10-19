@@ -73,9 +73,31 @@ async function runDevCommand(args: string[]): Promise<number> {
   const separator = args.indexOf("--");
   const optionArgs = separator === -1 ? args : args.slice(0, separator);
   const command = separator === -1 ? [] : args.slice(separator + 1);
-  const parsed = parseOptions(optionArgs, ["config", "port"]);
+  const parsed = parseOptions(optionArgs, ["config", "port", "transport"]);
   ensureNoPositionals(parsed);
   const config = await loadStatusPage(configPathFrom(parsed));
+  if (parsed.options.transport && parsed.options.transport !== "http") {
+    throw new CliInputError("--transport must be http.");
+  }
+  if (parsed.options.transport === "http") {
+    if (command.length === 0) {
+      throw new CliInputError(
+        "--transport http requires a framework dev command after --.",
+      );
+    }
+    const port = readPort(parsed.options.port ?? "3000");
+    const controller = new AbortController();
+    const child = runChildProcess(command);
+    // The framework server owns D1. The CLI only keeps time; every operation
+    // runs inside that server, with the same binding used to render the page.
+    const scheduler = runHttpDevScheduler(config, port, controller.signal);
+    try {
+      return await child;
+    } finally {
+      controller.abort();
+      await scheduler;
+    }
+  }
   const scheduler = startLocalScheduler(config);
 
   // Populate a freshly-created local database immediately. Subsequent runs are
@@ -588,7 +610,7 @@ function printUsage(): void {
   console.error(
     [
       "Usage:",
-      "  heyo-status dev [--config ./heyo-status.config.ts] [--port <port>] [-- <framework dev command>]",
+      "  heyo-status dev [--config ./heyo-status.config.ts] [--port <port>] [--transport http] [-- <framework dev command>]",
       "  heyo-status check run [--config ./heyo-status.config.ts]",
       "  heyo-status db migrate [--config ./heyo-status.config.ts]",
       "  heyo-status db seed --uptime <0-100> --days <n> [--config ./heyo-status.config.ts]",
@@ -606,32 +628,111 @@ interface LocalScheduler {
   stop(): void;
 }
 
+async function runHttpDevScheduler(
+  config: StatusPage,
+  port: number,
+  signal: AbortSignal,
+): Promise<void> {
+  const base = `http://127.0.0.1:${port}`;
+  const endpoint = `${base}/api/heyo-status/dev-cron/cron`;
+  // The framework may need to compile routes and migrate local D1 first.
+  // Waiting for its own API avoids racing the initial check against startup.
+  while (!signal.aborted) {
+    try {
+      const ready = await fetch(`${base}${config.basePath}/healthz`, {
+        signal: AbortSignal.any([signal, AbortSignal.timeout(2_000)]),
+      });
+      if (ready.ok) break;
+    } catch {
+      // No listener yet (or the framework is recompiling).
+    }
+    await new Promise<void>((resolveWait) => {
+      const onAbort = () => {
+        clearTimeout(timer);
+        resolveWait();
+      };
+      const timer = setTimeout(() => {
+        signal.removeEventListener("abort", onAbort);
+        resolveWait();
+      }, 500);
+      signal.addEventListener("abort", onAbort, { once: true });
+      if (signal.aborted) onAbort();
+    });
+  }
+  if (signal.aborted) return;
+
+  const run = async (task: string) => {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "x-heyo-status-dev-cron": task },
+      signal,
+    });
+    if (!response.ok) {
+      throw new Error(
+        `${task} returned HTTP ${response.status}: ${await response.text()}`,
+      );
+    }
+  };
+  try {
+    await run("checks");
+    console.log(
+      "Initial status check completed on the local framework server.",
+    );
+  } catch (error) {
+    if (!signal.aborted)
+      console.error(`Initial status check failed: ${errorMessage(error)}`);
+  }
+  if (signal.aborted) return;
+  const scheduler = startLocalScheduler(config, {
+    checks: () => run("checks"),
+    summarize: () => run("summarize"),
+    cleanup: () => run("cleanup"),
+  });
+  await new Promise<void>((resolveStop) => {
+    if (signal.aborted) return resolveStop();
+    signal.addEventListener("abort", () => resolveStop(), { once: true });
+  });
+  scheduler.stop();
+}
+
 /**
  * A dependency-free five-field cron scheduler for local development. It
  * evaluates once per second but runs a matching job at most once per minute.
  * Production adapters keep using their platform cron services.
  */
-function startLocalScheduler(config: StatusPage): LocalScheduler {
+function startLocalScheduler(
+  config: StatusPage,
+  operations: {
+    checks: () => Promise<unknown>;
+    summarize: () => Promise<unknown>;
+    cleanup: () => Promise<unknown>;
+  } = {
+    checks: () => config.cron.runChecks(),
+    summarize: () => config.cron.summarize(),
+    cleanup: () => config.cron.cleanup(),
+  },
+): LocalScheduler {
   const jobs: Array<{
     expression: string;
     name: string;
     run: () => Promise<unknown>;
     lastMinute?: string;
+    running?: boolean;
   }> = [
     {
       expression: config.checks.interval,
       name: "checks",
-      run: () => config.cron.runChecks(),
+      run: operations.checks,
     },
     {
       expression: config.checks.summaryCron,
       name: "history summary",
-      run: () => config.cron.summarize(),
+      run: operations.summarize,
     },
     {
       expression: config.checks.cleanupCron,
       name: "history cleanup",
-      run: () => config.cron.cleanup(),
+      run: operations.cleanup,
     },
   ];
 
@@ -641,17 +742,23 @@ function startLocalScheduler(config: StatusPage): LocalScheduler {
     for (const job of jobs) {
       if (
         job.lastMinute === minute ||
+        job.running ||
         !matchesCronExpression(job.expression, now)
       ) {
         continue;
       }
       job.lastMinute = minute;
-      void job.run().catch((error: unknown) => {
-        console.error(`Scheduled ${job.name} failed: ${errorMessage(error)}`);
-      });
+      job.running = true;
+      void job
+        .run()
+        .catch((error: unknown) => {
+          console.error(`Scheduled ${job.name} failed: ${errorMessage(error)}`);
+        })
+        .finally(() => {
+          job.running = false;
+        });
     }
   };
-  tick();
   // `dev` performs an explicit initial check. Mark the current minute as
   // consumed so an expression such as `* * * * *` does not immediately run
   // that same check a second time on the scheduler's first tick.
@@ -661,6 +768,7 @@ function startLocalScheduler(config: StatusPage): LocalScheduler {
     if (matchesCronExpression(job.expression, now))
       job.lastMinute = currentMinute;
   }
+  tick();
   const timer = setInterval(tick, 1_000);
   return { stop: () => clearInterval(timer) };
 }

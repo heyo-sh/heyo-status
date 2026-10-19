@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run db:migrate && astro dev",
+    "dev": "bun run db:migrate && heyo-status dev --transport http --port 4321 -- astro dev --host 127.0.0.1 --port 4321",
     "start": "astro build && wrangler dev",
     "check": null,
     "db:seed": null,
