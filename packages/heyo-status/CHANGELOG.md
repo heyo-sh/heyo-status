@@ -1,5 +1,11 @@
 # @heyo-sh/heyo-status
 
+## 0.3.3
+
+### Patch Changes
+
+- 61ec5ac: Show incident and maintenance sections with clear empty states whenever their features are enabled. Pass the feature flags through all generated status pages so disabled sections stay hidden.
+
 ## 0.3.2
 
 ### Patch Changes

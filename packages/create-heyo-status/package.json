@@ -1,6 +1,6 @@
 {
   "name": "@heyo-sh/create-heyo-status",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "Create a standalone Heyo Status project.",
   "keywords": [
     "status-page",
