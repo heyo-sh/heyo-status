@@ -8,7 +8,7 @@
     "deploy": "astro build && wrangler deploy"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "14.3.4",
+    "@astrojs/cloudflare": "14.4.0",
     "@astrojs/react": "7.1.0",
     "@heyo-sh/heyo-status": "workspace:*",
     "@tailwindcss/postcss": "^4.1.14",
