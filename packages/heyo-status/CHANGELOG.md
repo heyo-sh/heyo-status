@@ -1,5 +1,11 @@
 # @heyo-sh/heyo-status
 
+## 0.3.2
+
+### Patch Changes
+
+- 3fcc38b: Run initial and scheduled status checks through the local framework server in generated Cloudflare projects, so `bun run dev` populates the same D1 database used by the status page.
+
 ## 0.3.1
 
 ### Patch Changes
