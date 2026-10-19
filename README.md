@@ -60,7 +60,9 @@ bun dev
 ```
 
 Cloudflare starters migrate local D1 and start a framework development server
-when you run `bun dev`. Changes to `theme` in `heyo-status.config.ts` refresh
+when you run `bun dev`. An initial check runs automatically after the server is
+ready; subsequent checks, summaries and cleanup use the configured cron schedule
+and the same local D1 binding as the page. Changes to `theme` in `heyo-status.config.ts` refresh
 the page without restarting the server. To test the production Worker locally,
 run `bun run start` (which builds once, so restart it after changing code).
 Replace the example.com monitors and configure `heyo-status.config.ts` before

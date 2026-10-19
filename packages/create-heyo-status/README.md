@@ -41,8 +41,10 @@ Apply remote migrations before publishing:
 | `later`      | SQLite or PostgreSQL | `bun run dev` after configuring the database                        |
 
 Cloudflare's `bun run dev` starts the framework dev server with local D1 bindings.
+It runs the first check automatically once the server is ready, then runs checks,
+summary and cleanup jobs on the configured schedule through that same server.
 Editing `theme` in `heyo-status.config.ts` refreshes the page without restarting
-it. Use `bun run start` to build and serve the actual Worker with Wrangler;
+it; restart `dev` if you change the cron expressions. Use `bun run start` to build and serve the actual Worker with Wrangler;
 that command requires a restart after changing code.
 Before deploying to Cloudflare run `wrangler d1 migrations apply <name> --remote`.
 Vercel itself sends the platform `CRON_SECRET` as a bearer token to cron routes.

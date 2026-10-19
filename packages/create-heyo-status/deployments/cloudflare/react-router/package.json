@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run db:migrate && react-router dev",
+    "dev": "bun run db:migrate && heyo-status dev --transport http --port 5173 -- bunx --bun react-router dev --host 127.0.0.1 --port 5173 --strictPort",
     "start": "react-router build && wrangler dev",
     "check": null,
     "db:seed": null,

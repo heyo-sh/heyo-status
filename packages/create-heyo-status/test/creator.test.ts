@@ -407,11 +407,30 @@ describe("create-heyo-status", () => {
 
       expect(packageJson.overrides["sharp"]).toBe("0.35.5");
       expect(packageJson.overrides["source-map-js"]).toBe("1.2.2");
-      expect(packageJson.scripts.dev).not.toContain("heyo-status");
-      expect(packageJson.scripts.dev).toContain("db:migrate");
       expect(packageJson.scripts.dev).toBe(
-        `bun run db:migrate && ${template === "react-router" ? "react-router" : template} dev`,
+        `bun run db:migrate && heyo-status dev --transport http ${template === "astro" ? "--port 4321 -- astro dev --host 127.0.0.1 --port 4321" : template === "react-router" ? "--port 5173 -- bunx --bun react-router dev --host 127.0.0.1 --port 5173 --strictPort" : "-- bunx --bun next dev --port 3000 --hostname 127.0.0.1"}`,
       );
+      const localCronRoute =
+        template === "react-router"
+          ? "src/routes/api.heyo-status.dev-cron.ts"
+          : template === "next"
+            ? "app/api/heyo-status/dev-cron/cron/route.ts"
+            : "src/pages/api/heyo-status/dev-cron/cron.ts";
+      const cronSource = await readFile(
+        join(projectPath, localCronRoute),
+        "utf8",
+      );
+      expect(cronSource).toContain("runLocalDevCron");
+      expect(cronSource).toContain(
+        template === "next"
+          ? 'NODE_ENV !== "development"'
+          : "import.meta.env.DEV",
+      );
+      if (template === "react-router") {
+        expect(
+          await readFile(join(projectPath, "src/routes.ts"), "utf8"),
+        ).toContain("api/heyo-status/dev-cron/cron");
+      }
       expect(packageJson.scripts.start).toContain("wrangler dev");
       if (template === "react-router") {
         for (const route of [

@@ -7,6 +7,7 @@ import {
   cloudflareCronExpressions,
   cloudflareWorker,
   runCloudflareScheduled,
+  runLocalDevCron,
 } from "../src/deployments/cloudflare";
 import { scheduleStatusPage } from "../src/deployments/node";
 import { runVercelCron, vercelCronHandler } from "../src/deployments/vercel";
@@ -81,6 +82,59 @@ describe("framework and deployment adapters", () => {
     );
     await scheduled;
     expect(calls).toEqual(["summarize", "cleanup"]);
+  });
+
+  test("keeps local Cloudflare cron off in production and away from browser requests", async () => {
+    calls.length = 0;
+    const request = (
+      task: string,
+      url = "http://127.0.0.1:3000/api/heyo-status/dev-cron/cron",
+      headers: Record<string, string> = {},
+    ) =>
+      new Request(url, {
+        method: "POST",
+        headers: { "x-heyo-status-dev-cron": task, ...headers },
+      });
+
+    expect((await runLocalDevCron(page, request("checks"), false)).status).toBe(
+      404,
+    );
+    expect(
+      (
+        await runLocalDevCron(
+          page,
+          request(
+            "checks",
+            "https://status.example/api/heyo-status/dev-cron/cron",
+          ),
+          true,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await runLocalDevCron(
+          page,
+          request("checks", undefined, { origin: "http://localhost" }),
+          true,
+        )
+      ).status,
+    ).toBe(403);
+    expect((await runLocalDevCron(page, request("unknown"), true)).status).toBe(
+      400,
+    );
+    expect(calls).toEqual([]);
+
+    expect((await runLocalDevCron(page, request("checks"), true)).status).toBe(
+      200,
+    );
+    expect(
+      (await runLocalDevCron(page, request("summarize"), true)).status,
+    ).toBe(200);
+    expect((await runLocalDevCron(page, request("cleanup"), true)).status).toBe(
+      200,
+    );
+    expect(calls).toEqual(["checks", "summarize", "cleanup"]);
   });
 
   test("provides protected Vercel and node-cron deployment helpers", async () => {

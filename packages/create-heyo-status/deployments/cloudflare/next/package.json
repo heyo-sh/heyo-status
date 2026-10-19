@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "bun run db:migrate && next dev",
+    "dev": "bun run db:migrate && heyo-status dev --transport http -- bunx --bun next dev --port 3000 --hostname 127.0.0.1",
     "start": "opennextjs-cloudflare build && wrangler dev",
     "check": null,
     "db:seed": null,
