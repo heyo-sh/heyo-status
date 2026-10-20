@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@heyo-sh/heyo-ui": "^0.2.0",
+    "@heyo-sh/heyo-ui": "^0.5.0",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.11.3",
     "tailwindcss": "^4.1.14",

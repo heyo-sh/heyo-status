@@ -389,18 +389,71 @@ describe("status UI", () => {
     expect(html).not.toContain("Subscribe to updates");
   });
 
-  // A partial day is its own state: reporting it as either up or down loses the
-  // only information the column carries.
-  test("keeps daily tooltip data available to assistive technology", () => {
+  test("shows exact unavailability in focusable daily tooltips and fills partial days", () => {
+    const base = snapshot.monitors[0]!.days[1]!;
     const html = renderToStaticMarkup(
-      <DayGrid days={snapshot.monitors[0]!.days} monitorName="Website" />,
+      <DayGrid
+        days={[
+          ...snapshot.monitors[0]!.days,
+          {
+            ...base,
+            key: "partial",
+            tooltip: "75% uptime — 12 checks — 3 failures",
+            downChecks: 3,
+            downPercent: 25,
+          },
+          {
+            ...base,
+            key: "down",
+            status: "down",
+            tooltip: "0% uptime — 12 checks — 12 failures",
+            downChecks: 12,
+            downPercent: 100,
+          },
+          {
+            ...base,
+            key: "empty",
+            status: "empty",
+            tooltip: "No data for Jan 15, 2026",
+            totalChecks: 0,
+            downChecks: 0,
+            downPercent: 0,
+          },
+        ]}
+        monitorName="Website"
+      />,
     );
 
+    expect(html).toContain('role="group"');
     expect(html).toContain("Website daily uptime history");
-    expect(html).toContain("Jan 15, 2026: 95% uptime — 12 checks — 1 failure");
+    expect(html).toContain(
+      'aria-label="Jan 15, 2026: 95% uptime — 12 checks — 1 failure — 5% unavailable"',
+    );
     expect(html).toContain('data-status="operational"');
     expect(html).toContain('data-status="degraded"');
+    expect(html).toContain('data-status="down"');
+    expect(html).toContain('data-status="unknown"');
+    expect(html).toContain("flex-grow:95");
+    expect(html).toContain("flex-grow:5");
+    expect(html).toContain("flex-grow:75");
+    expect(html).toContain("flex-grow:25");
+    expect(html).toContain('aria-label="No data for Jan 15, 2026"');
+    expect(html).not.toContain("No data for Jan 15, 2026 — 0% unavailable");
   });
+
+  test.each(["slate", "fern", "reed"] as const)(
+    "%s uses the shared interactive history bar",
+    (theme) => {
+      const html = renderToStaticMarkup(
+        <StatusPage snapshot={snapshot} theme={theme} />,
+      );
+
+      expect(html).toContain('data-slot="status-bar"');
+      expect(html).toContain("5% unavailable");
+      expect(html).toContain("flex-grow:95");
+      expect(html).toContain("flex-grow:5");
+    },
+  );
 
   test("shows unknown uptime as no data instead of a false 0% value", () => {
     const html = renderToStaticMarkup(<UptimeBar label="24h" uptime={null} />);

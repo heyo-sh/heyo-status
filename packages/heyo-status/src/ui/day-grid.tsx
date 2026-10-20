@@ -15,16 +15,27 @@ export interface DayGridProps {
  * The uptime history bar: one column per day, coloured by what happened.
  *
  * It is heyo-ui's `StatusBar`, which flexes its columns instead of sizing them,
- * so ninety days fit a phone without a horizontal scroller. Each column keeps
- * the aggregate in a native tooltip and the whole bar is labelled, so the daily
- * figures stay available to a screen reader and without a pointer.
+ * so ninety days fit a phone without a horizontal scroller. Each column has a
+ * hover/focus tooltip and an accessible name with the exact daily aggregate.
  */
 export function DayGrid({ days, monitorName, className }: DayGridProps) {
   if (days.length === 0) return null;
 
   const ticks: StatusTick[] = days.map((day) => ({
     status: tickStatus(day),
-    label: `${day.label}: ${day.tooltip}`,
+    label:
+      day.status === "empty"
+        ? day.tooltip
+        : `${day.label}: ${day.tooltip} — ${day.downPercent}% unavailable`,
+    // The healthy share is above the unavailable share. Unknown days keep the
+    // solid "unknown" tick instead of pretending that missing data is uptime.
+    segments:
+      day.status === "degraded"
+        ? [
+            { status: "operational", percent: 100 - day.downPercent },
+            { status: "down", percent: day.downPercent },
+          ]
+        : undefined,
   }));
 
   return (
@@ -32,7 +43,7 @@ export function DayGrid({ days, monitorName, className }: DayGridProps) {
       aria-label={`${monitorName} daily uptime history`}
       className={className}
       legend={[days[0]!.label, days.at(-1)!.label]}
-      role="img"
+      role="group"
       size="base"
       ticks={ticks}
     />
