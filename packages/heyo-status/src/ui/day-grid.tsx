@@ -27,6 +27,7 @@ export function DayGrid({ days, monitorName, className }: DayGridProps) {
       day.status === "empty"
         ? day.tooltip
         : `${day.label}: ${day.tooltip} — ${day.downPercent}% unavailable`,
+    tooltip: <DayTooltip day={day} />,
     // The healthy share is above the unavailable share. Unknown days keep the
     // solid "unknown" tick instead of pretending that missing data is uptime.
     segments:
@@ -48,6 +49,72 @@ export function DayGrid({ days, monitorName, className }: DayGridProps) {
       ticks={ticks}
     />
   );
+}
+
+function DayTooltip({ day }: { day: DaySnapshot }) {
+  return (
+    <span className="flex flex-col gap-1">
+      <span className="font-semibold">{longDayLabel(day)}</span>
+      <span>{dayStatusSummary(day)}</span>
+      {day.status !== "empty" && (
+        <>
+          <span>
+            {Math.round((100 - day.downPercent) * 100) / 100}% uptime ·{" "}
+            {day.downPercent}% unavailable
+          </span>
+          <span>
+            {day.totalChecks} {day.totalChecks === 1 ? "check" : "checks"}
+            {day.downChecks > 0 && (
+              <>
+                {" · "}
+                {day.downChecks} {day.downChecks === 1 ? "failure" : "failures"}
+              </>
+            )}
+          </span>
+        </>
+      )}
+    </span>
+  );
+}
+
+/** Match the full UTC dates and ordinal days used by paragraph/status-page. */
+function longDayLabel(day: DaySnapshot): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day.key)) return day.label;
+  const date = new Date(`${day.key}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return day.label;
+
+  const dayOfMonth = date.getUTCDate();
+  const suffix = ordinalSuffix(dayOfMonth);
+  const weekday = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    timeZone: "UTC",
+  });
+  const month = date.toLocaleDateString("en-US", {
+    month: "long",
+    timeZone: "UTC",
+  });
+  return `${weekday}, ${month} ${dayOfMonth}${suffix}, ${date.getUTCFullYear()}`;
+}
+
+function ordinalSuffix(day: number): string {
+  if (day % 100 >= 11 && day % 100 <= 13) return "th";
+  switch (day % 10) {
+    case 1:
+      return "st";
+    case 2:
+      return "nd";
+    case 3:
+      return "rd";
+    default:
+      return "th";
+  }
+}
+
+function dayStatusSummary(day: DaySnapshot): string {
+  if (day.status === "empty") return "No checks";
+  if (day.status === "up") return "Status OK";
+  if (day.downMinutes === 0) return "Failed checks recorded";
+  return `DOWN for ${day.downMinutes} ${day.downMinutes === 1 ? "minute" : "minutes"}`;
 }
 
 function tickStatus(day: DaySnapshot): StatusLevel {
