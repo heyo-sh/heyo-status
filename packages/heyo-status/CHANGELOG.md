@@ -1,5 +1,11 @@
 # @heyo-sh/heyo-status
 
+## 0.4.1
+
+### Patch Changes
+
+- e3d87a3: Format daily status tooltips with a full UTC date, a clear status or downtime summary, and separate lines for uptime, unavailability, checks, and failures.
+
 ## 0.4.0
 
 ### Minor Changes
