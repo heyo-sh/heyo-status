@@ -1,5 +1,11 @@
 # @heyo-sh/heyo-status
 
+## 0.4.0
+
+### Minor Changes
+
+- e1828b6: Upgrade heyo-ui and show focusable daily status tooltips with exact unavailability percentages, plus proportional healthy/unavailable fills for partially degraded days in the slate, fern and reed themes.
+
 ## 0.3.3
 
 ### Patch Changes
