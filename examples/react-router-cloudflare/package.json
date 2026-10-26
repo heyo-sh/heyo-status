@@ -17,7 +17,7 @@
     "@react-router/dev": "^7.0.0",
     "@react-router/serve": "^7.0.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.3.1",
     "react-router": "^7.0.0",
     "tailwindcss": "^4.1.14"
   },
