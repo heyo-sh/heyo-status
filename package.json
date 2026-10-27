@@ -18,6 +18,9 @@
     },
     "miniflare": {
       "undici": "7.30.1"
+    },
+    "@node-minify/core": {
+      "glob": "10.5.0"
     }
   },
   "scripts": {
