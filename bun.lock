@@ -150,7 +150,7 @@
         "heyo-status": "./dist/cli.js",
       },
       "dependencies": {
-        "@heyo-sh/heyo-ui": "^0.5.0",
+        "@heyo-sh/heyo-ui": "^0.5.1",
         "drizzle-orm": "^0.45.4",
         "hono": "^4.11.3",
         "tailwindcss": "^4.1.14",
@@ -567,7 +567,7 @@
 
     "@heyo-sh/heyo-status": ["@heyo-sh/heyo-status@workspace:packages/heyo-status"],
 
-    "@heyo-sh/heyo-ui": ["@heyo-sh/heyo-ui@0.5.0", "", { "dependencies": { "@base-ui/react": "^1.9.0", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "tailwind-merge": "^3.6.0" }, "peerDependencies": { "react": "^19.0.0", "react-dom": "^19.0.0", "tailwindcss": "^4.1.0" } }, "sha512-WkRFGxWlmkHQ1zzumzPS8H8ZxMJMlWS+kOCepw5rJOH4N7mPFnbDrYmpTialJT+cTnIOvkkq6xOQm/6XvO1i3g=="],
+    "@heyo-sh/heyo-ui": ["@heyo-sh/heyo-ui@0.5.1", "", { "dependencies": { "@base-ui/react": "^1.9.0", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "tailwind-merge": "^3.6.0" }, "peerDependencies": { "react": "^19.0.0", "react-dom": "^19.0.0", "tailwindcss": "^4.1.0" } }, "sha512-mbWX+Dj5tQ2rk3Hdv6aBPf0xAHXsTsW9cAOR6T3K9btR4HC9ang24rjENNDc522x22o0SoOdi3jfOh4lz3vxTA=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
