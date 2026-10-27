@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@heyo-sh/heyo-ui": "^0.5.0",
+    "@heyo-sh/heyo-ui": "^0.5.1",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.11.3",
     "tailwindcss": "^4.1.14",
@@ -50,8 +50,8 @@
     "@happy-dom/global-registrator": "21.0.4",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "exports": {
     ".": {
