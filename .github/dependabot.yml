@@ -6,15 +6,37 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
-    # The Cloudflare adapter must match the React Router major used by the
-    # example and templates. RR 8 also drops Node 20 and its Vite dev proxy.
-    # Upgrade the whole stack together rather than bumping this adapter alone.
+    # The React Router adapters, examples and templates must share one major.
+    # RR 8 also drops Node 20 and its Vite dev proxy, so the whole stack has to
+    # move together in a deliberate PR rather than one package at a time.
     ignore:
-      - dependency-name: "@react-router/cloudflare"
+      - dependency-name: "react-router"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@react-router/*"
         update-types: ["version-update:semver-major"]
     groups:
+      # react and react-dom must resolve to the exact same version or hydration
+      # throws "Incompatible React versions"; keep them (and their types) in
+      # lockstep so they are never bumped one at a time.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
       development-dependencies:
         dependency-type: development
+        exclude-patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+        # Major dev-dependency bumps (e.g. Vite 8) break the Cloudflare Worker
+        # bundles; keep them out of the group so they land as isolated,
+        # reviewable PRs instead of silently breaking the batch.
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: /
