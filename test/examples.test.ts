@@ -70,14 +70,14 @@ describe("deployment examples", () => {
     }
   });
 
-  test("React Router packages share one major across examples and scaffolds", async () => {
+  test("React Router packages stay in lockstep across examples and scaffolds", async () => {
     const manifests = [
       "react-router-cloudflare/package.json",
       "react-router-vercel/package.json",
       "../packages/create-heyo-status/templates/react-router/package.json",
       "../packages/create-heyo-status/deployments/cloudflare/react-router/package.json",
     ];
-    const majors = new Set<number>();
+    const versions = new Set<string>();
 
     for (const manifest of manifests) {
       const { dependencies } = JSON.parse(
@@ -85,14 +85,29 @@ describe("deployment examples", () => {
       ) as { dependencies: Record<string, string> };
       for (const [name, version] of Object.entries(dependencies)) {
         if (name === "react-router" || name.startsWith("@react-router/")) {
-          const major = Number(/^\^(\d+)/.exec(version)?.[1]);
-          expect(Number.isInteger(major)).toBe(true);
-          majors.add(major);
+          expect(version).toMatch(/^\^7\.\d+\.\d+$/);
+          versions.add(version);
         }
       }
     }
 
-    expect(majors.size).toBe(1);
+    expect(versions.size).toBe(1);
+  });
+
+  test("Next starters pin the same version tested by both deployment examples", async () => {
+    const versions = new Set<string>();
+    for (const manifest of [
+      "next-cloudflare/package.json",
+      "next-vercel/package.json",
+      "../packages/create-heyo-status/templates/next/package.json",
+    ]) {
+      const { dependencies } = JSON.parse(
+        await readFile(join(root, manifest), "utf8"),
+      ) as { dependencies: { next: string } };
+      expect(dependencies.next).toMatch(/^\d+\.\d+\.\d+$/);
+      versions.add(dependencies.next);
+    }
+    expect(versions.size).toBe(1);
   });
 
   test.each(examples)(

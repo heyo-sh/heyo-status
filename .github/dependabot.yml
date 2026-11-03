@@ -24,6 +24,12 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
+      # Router's runtime, build tools and platform adapters have exact peer
+      # requirements; patch and minor updates must land together too.
+      react-router:
+        patterns:
+          - "react-router"
+          - "@react-router/*"
       development-dependencies:
         dependency-type: development
         exclude-patterns:
@@ -31,6 +37,8 @@ updates:
           - "react-dom"
           - "@types/react"
           - "@types/react-dom"
+          - "react-router"
+          - "@react-router/*"
         # Major dev-dependency bumps (e.g. Vite 8) break the Cloudflare Worker
         # bundles; keep them out of the group so they land as isolated,
         # reviewable PRs instead of silently breaking the batch.
