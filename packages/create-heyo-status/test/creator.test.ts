@@ -515,9 +515,9 @@ describe("create-heyo-status", () => {
           await readFile(join(projectPath, "tsconfig.json"), "utf8"),
         ) as { exclude: string[] };
         expect(tsconfig.exclude).toContain("worker");
-        // A newer Next minor has broken OpenNext Worker startup despite a
-        // successful `next build`; upgrade only after testing the Worker.
-        expect(packageJson.dependencies.next).toBe("16.3.8");
+        // Keep Next pinned to the version exercised by scaffold:smoke, which
+        // boots the production Worker as well as the framework dev proxy.
+        expect(packageJson.dependencies.next).toBe("16.4.3");
       }
     }
   });
