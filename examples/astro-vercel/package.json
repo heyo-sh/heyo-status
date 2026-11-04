@@ -7,7 +7,7 @@
     "db:migrate": "bun run scripts/migrate.ts"
   },
   "dependencies": {
-    "@astrojs/react": "7.1.1",
+    "@astrojs/react": "7.1.2",
     "@astrojs/vercel": "11.0.17",
     "@heyo-sh/heyo-status": "workspace:*",
     "@tailwindcss/postcss": "^4.1.14",
