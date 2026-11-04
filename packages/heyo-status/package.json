@@ -38,7 +38,7 @@
   "dependencies": {
     "@heyo-sh/heyo-ui": "^0.5.1",
     "drizzle-orm": "^0.45.4",
-    "hono": "^4.11.3",
+    "hono": "^4.13.16",
     "tailwindcss": "^4.1.14",
     "zod": "4.6.7"
   },

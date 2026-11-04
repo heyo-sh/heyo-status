@@ -152,7 +152,7 @@
       "dependencies": {
         "@heyo-sh/heyo-ui": "^0.5.1",
         "drizzle-orm": "^0.45.4",
-        "hono": "^4.11.3",
+        "hono": "^4.13.16",
         "tailwindcss": "^4.1.14",
         "zod": "4.6.7",
       },
@@ -1417,7 +1417,7 @@
 
     "heyo-status-contract-example": ["heyo-status-contract-example@workspace:examples/contract"],
 
-    "hono": ["hono@4.13.11", "", {}, "sha512-/SMX/RQNJn7oNmFwH6DtwDqcrzZU2otm1FD6OJe2cWF6cfy/F8hq0XVBv7xW3FTJshRQwuBnXHDq2kNsdZnshg=="],
+    "hono": ["hono@4.13.16", "", {}, "sha512-AOLOEhvrV+iH92xXCnFr/5+3KjPKcI3xP63XJtX5spAnkznPdHijlIsUTpi7/9EhWqrTCekw5c5zh1K+YsVw7A=="],
 
     "html-escaper": ["html-escaper@3.0.3", "", {}, "sha512-RuMffC89BOWQoY0WKGpIhn5gX3iI54O6nRA0yC124NYVtzjmFWBIiFd8M0x+ZdX0P9R4lADg1mgP8C7PxGOWuQ=="],
 
