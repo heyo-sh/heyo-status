@@ -39,7 +39,7 @@
     "@heyo-sh/heyo-ui": "^0.5.1",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.16",
-    "tailwindcss": "^4.1.14",
+    "tailwindcss": "^4.3.4",
     "zod": "4.6.7"
   },
   "peerDependencies": {
