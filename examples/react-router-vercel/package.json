@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@heyo-sh/heyo-status": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.3.5",
     "drizzle-orm": "^0.45.4",
     "@react-router/dev": "^7.18.5",
     "@react-router/node": "^7.18.5",

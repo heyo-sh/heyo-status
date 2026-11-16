@@ -11,7 +11,7 @@
     "@astrojs/cloudflare": "14.4.6",
     "@astrojs/react": "7.1.4",
     "@heyo-sh/heyo-status": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.3.5",
     "astro": "7.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

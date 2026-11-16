@@ -10,7 +10,7 @@
     "@astrojs/react": "7.1.4",
     "@astrojs/vercel": "11.0.17",
     "@heyo-sh/heyo-status": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.3.5",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "7.4.2",
     "drizzle-orm": "^0.45.4",

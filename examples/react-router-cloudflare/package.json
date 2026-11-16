@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@heyo-sh/heyo-status": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.14",
+    "@tailwindcss/postcss": "^4.3.5",
     "@react-router/cloudflare": "^7.18.5",
     "@react-router/dev": "^7.18.5",
     "@react-router/serve": "^7.18.5",
